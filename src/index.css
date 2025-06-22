@@ -1,0 +1,43 @@
+/* Tailwind CSS will be loaded via CDN in public/index.html */
+
+/* Global styles for LatSpace design system */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 400;
+  line-height: 1.25;
+  color: #074D47;
+  background-color: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.15;
+  color: #074D47;
+}
+
+/* Remove all rounded corners globally */
+* {
+  border-radius: 0 !important;
+}
+
+/* Grid background pattern for data sections */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(7, 77, 71, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7, 77, 71, 0.03) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Monospace for all numeric data */
+.data-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.875rem;
+  letter-spacing: -0.02em;
+}
