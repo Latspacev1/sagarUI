@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Layout } from '../layout/Layout';
-import { Save, RotateCcw, CheckCircle } from 'lucide-react';
+import { Save, RotateCcw, CheckCircle, Paperclip, X } from 'lucide-react';
 
 interface ParameterData {
   value: string;
   month: string;
   year: string;
+  attachedFiles?: File[];
 }
 
 interface FormData {
@@ -690,6 +691,18 @@ export const ManualEntry: React.FC = () => {
   const [activeFuelSubsection, setActiveFuelSubsection] = useState<'kiln' | 'cpp' | 'hag_cement_mill'>('kiln');
   const [savedSections, setSavedSections] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileModalOpen, setFileModalOpen] = useState<string | null>(null);
+
+  // File validation settings
+  const allowedFileTypes = [
+    'application/pdf',
+    'application/msword', 
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png',
+    'text/plain'
+  ];
+  const maxFileSize = 10 * 1024 * 1024; // 10MB
 
   const handleInputChange = (section: keyof FormData, field: string, dataType: 'value' | 'month' | 'year', value: string, subsection?: string) => {
     if (section === 'fuel_data' && subsection) {
@@ -741,11 +754,142 @@ export const ManualEntry: React.FC = () => {
     localStorage.removeItem('cement-production-form-draft');
   };
 
+  // File management functions
+  const validateFile = (file: File): string | null => {
+    if (!allowedFileTypes.includes(file.type)) {
+      return 'File type not allowed. Please upload PDF, Word, image, or text files.';
+    }
+    if (file.size > maxFileSize) {
+      return 'File size too large. Maximum size is 10MB.';
+    }
+    return null;
+  };
+
+  const handleFileAttach = (section: keyof FormData, field: string, files: FileList, subsection?: string) => {
+    const newFiles = Array.from(files);
+    const validFiles: File[] = [];
+    
+    for (const file of newFiles) {
+      const error = validateFile(file);
+      if (!error) {
+        validFiles.push(file);
+      } else {
+        alert(`${file.name}: ${error}`);
+      }
+    }
+
+    if (validFiles.length === 0) return;
+
+    if (section === 'fuel_data' && subsection) {
+      const fuelSubsection = formData.fuel_data[subsection as keyof typeof formData.fuel_data];
+      const currentParam = (fuelSubsection as any)[field] as ParameterData;
+      const existingFiles = currentParam.attachedFiles || [];
+      
+      const updatedData = {
+        ...formData,
+        fuel_data: {
+          ...formData.fuel_data,
+          [subsection]: {
+            ...(formData.fuel_data[subsection as keyof typeof formData.fuel_data] as any),
+            [field]: {
+              ...currentParam,
+              attachedFiles: [...existingFiles, ...validFiles]
+            }
+          }
+        }
+      };
+      setFormData(updatedData);
+      localStorage.setItem('cement-production-form-draft', JSON.stringify(updatedData));
+    } else {
+      const currentParam = formData[section][field as keyof typeof formData[typeof section]] as ParameterData;
+      const existingFiles = currentParam.attachedFiles || [];
+      
+      const updatedData = {
+        ...formData,
+        [section]: {
+          ...formData[section],
+          [field]: {
+            ...currentParam,
+            attachedFiles: [...existingFiles, ...validFiles]
+          }
+        }
+      };
+      setFormData(updatedData);
+      localStorage.setItem('cement-production-form-draft', JSON.stringify(updatedData));
+    }
+  };
+
+  const handleFileRemove = (section: keyof FormData, field: string, fileIndex: number, subsection?: string) => {
+    if (section === 'fuel_data' && subsection) {
+      const fuelSubsection = formData.fuel_data[subsection as keyof typeof formData.fuel_data];
+      const currentParam = (fuelSubsection as any)[field] as ParameterData;
+      const files = currentParam.attachedFiles || [];
+      
+      const updatedData = {
+        ...formData,
+        fuel_data: {
+          ...formData.fuel_data,
+          [subsection]: {
+            ...(formData.fuel_data[subsection as keyof typeof formData.fuel_data] as any),
+            [field]: {
+              ...currentParam,
+              attachedFiles: files.filter((_, index) => index !== fileIndex)
+            }
+          }
+        }
+      };
+      setFormData(updatedData);
+      localStorage.setItem('cement-production-form-draft', JSON.stringify(updatedData));
+    } else {
+      const currentParam = formData[section][field as keyof typeof formData[typeof section]] as ParameterData;
+      const files = currentParam.attachedFiles || [];
+      
+      const updatedData = {
+        ...formData,
+        [section]: {
+          ...formData[section],
+          [field]: {
+            ...currentParam,
+            attachedFiles: files.filter((_, index) => index !== fileIndex)
+          }
+        }
+      };
+      setFormData(updatedData);
+      localStorage.setItem('cement-production-form-draft', JSON.stringify(updatedData));
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    
+    // Count total attached files
+    let totalFiles = 0;
+    const collectFiles = (sectionData: any, sectionName: string) => {
+      for (const [fieldKey, paramData] of Object.entries(sectionData)) {
+        if (paramData && typeof paramData === 'object' && 'attachedFiles' in paramData) {
+          const files = (paramData as ParameterData).attachedFiles || [];
+          totalFiles += files.length;
+          if (files.length > 0) {
+            console.log(`${sectionName}.${fieldKey}: ${files.length} file(s) attached`);
+          }
+        }
+      }
+    };
+
+    // Process all sections
+    collectFiles(formData.production, 'production');
+    collectFiles(formData.energy_data, 'energy_data');
+    collectFiles(formData.emissions_data, 'emissions_data');
+    
+    // Process fuel data subsections
+    collectFiles(formData.fuel_data.kiln, 'fuel_data.kiln');
+    collectFiles(formData.fuel_data.cpp, 'fuel_data.cpp');
+    collectFiles(formData.fuel_data.hag_cement_mill, 'fuel_data.hag_cement_mill');
+    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     console.log('Submitted ESG data:', formData);
+    console.log(`Total attached files: ${totalFiles}`);
     setSavedSections(new Set(['production', 'energy_data', 'emissions_data', 'fuel_data']));
     localStorage.removeItem('cement-production-form-draft');
     setIsSubmitting(false);
@@ -1115,6 +1259,171 @@ export const ManualEntry: React.FC = () => {
   
   const currentFields = getCurrentFields();
 
+  // AttachButton component
+  const AttachButton: React.FC<{
+    section: keyof FormData;
+    field: string;
+    subsection?: string;
+  }> = ({ section, field, subsection }) => {
+    const paramData = section === 'fuel_data' && subsection
+      ? ((formData.fuel_data[subsection as keyof typeof formData.fuel_data] as any)?.[field] as ParameterData) || createEmptyParameter()
+      : formData[section]?.[field as keyof typeof formData[typeof section]] as ParameterData || createEmptyParameter();
+    
+    const fileCount = paramData.attachedFiles?.length || 0;
+    const fieldKey = subsection ? `${section}-${subsection}-${field}` : `${section}-${field}`;
+
+    return (
+      <div className="flex items-center justify-center gap-1.5">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.multiple = true;
+              input.accept = allowedFileTypes.join(',');
+              input.onchange = (e) => {
+                const files = (e.target as HTMLInputElement).files;
+                if (files) {
+                  handleFileAttach(section, field, files, subsection);
+                }
+              };
+              input.click();
+            }}
+            className={`group relative w-6 h-6 rounded transition-all duration-200 flex items-center justify-center ${
+              fileCount > 0 
+                ? 'bg-green-100 hover:bg-green-200 text-green-600' 
+                : 'hover:bg-gray-100 text-latspace-medium hover:text-latspace-dark'
+            }`}
+            title="Attach supporting documents"
+          >
+            <Paperclip className="w-3.5 h-3.5 transition-colors" />
+            {fileCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-semibold min-w-[14px] h-3.5 rounded-full flex items-center justify-center text-[10px]">
+                {fileCount}
+              </span>
+            )}
+          </button>
+        </div>
+        
+        {fileCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => setFileModalOpen(fieldKey)}
+            className="text-xs font-medium text-green-600 hover:text-green-700 hover:underline transition-colors whitespace-nowrap"
+          >
+            {fileCount} file{fileCount > 1 ? 's' : ''}
+          </button>
+        ) : (
+          <span className="text-xs text-gray-500 font-mono">ATTACH</span>
+        )}
+      </div>
+    );
+  };
+
+  // File Modal component
+  const FileModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    section: keyof FormData;
+    field: string;
+    subsection?: string;
+  }> = ({ isOpen, onClose, section, field, subsection }) => {
+    if (!isOpen) return null;
+
+    const paramData = section === 'fuel_data' && subsection
+      ? ((formData.fuel_data[subsection as keyof typeof formData.fuel_data] as any)?.[field] as ParameterData) || createEmptyParameter()
+      : formData[section]?.[field as keyof typeof formData[typeof section]] as ParameterData || createEmptyParameter();
+    
+    const files = paramData.attachedFiles || [];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-latspace-dark to-gray-800 p-6 text-white">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Supporting Documents
+                </h3>
+                <p className="text-sm opacity-90 mt-1 font-mono">
+                  {field.replace(/_/g, ' ').toUpperCase()}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-white hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-white hover:bg-opacity-20"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="p-6">
+            {files.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Paperclip className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 font-medium">No files attached yet</p>
+                <p className="text-sm text-gray-400 mt-1">Click the attach button to add supporting documents</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600 font-medium">
+                    {files.length} file{files.length > 1 ? 's' : ''} attached
+                  </span>
+                </div>
+                {files.map((file, index) => (
+                  <div key={index} className="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Paperclip className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} KB • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleFileRemove(section, field, index, subsection)}
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all"
+                      title="Remove file"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Footer */}
+          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-500">
+                Supported: PDF, Word, Images, Text files (max 10MB)
+              </p>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-latspace-dark text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto space-y-grid-6">
@@ -1207,7 +1516,7 @@ export const ManualEntry: React.FC = () => {
                       {field.label}
                     </label>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-grid-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-grid-3">
                       {/* Value Input */}
                       <div>
                         <label className="block text-xs text-latspace-medium mb-grid uppercase tracking-wider">
@@ -1222,11 +1531,11 @@ export const ManualEntry: React.FC = () => {
                                 ? handleInputChange(activeSection, field.key, 'value', e.target.value, activeFuelSubsection)
                                 : handleInputChange(activeSection, field.key, 'value', e.target.value)
                             }
-                            className="w-full px-grid-2 py-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
+                            className="w-full h-[42px] px-grid-2 pr-grid-6 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
                             placeholder="0.00"
                           />
                           {field.unit && (
-                            <div className="absolute right-grid-2 top-1/2 transform -translate-y-1/2 text-latspace-medium text-xs font-mono">
+                            <div className="absolute right-grid-3 top-1/2 transform -translate-y-1/2 text-latspace-medium text-xs font-mono pointer-events-none">
                               {field.unit}
                             </div>
                           )}
@@ -1245,7 +1554,7 @@ export const ManualEntry: React.FC = () => {
                               ? handleInputChange(activeSection, field.key, 'month', e.target.value, activeFuelSubsection)
                               : handleInputChange(activeSection, field.key, 'month', e.target.value)
                           }
-                          className="w-full px-grid-2 py-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
+                          className="w-full h-[42px] px-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
                         >
                           <option value="">Select Month</option>
                           <option value="01">January</option>
@@ -1275,7 +1584,7 @@ export const ManualEntry: React.FC = () => {
                               ? handleInputChange(activeSection, field.key, 'year', e.target.value, activeFuelSubsection)
                               : handleInputChange(activeSection, field.key, 'year', e.target.value)
                           }
-                          className="w-full px-grid-2 py-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
+                          className="w-full h-[42px] px-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
                         >
                           <option value="">Select Year</option>
                           <option value="2024">2024</option>
@@ -1284,6 +1593,24 @@ export const ManualEntry: React.FC = () => {
                           <option value="2021">2021</option>
                           <option value="2020">2020</option>
                         </select>
+                      </div>
+
+                      {/* Attach Button */}
+                      <div>
+                        <label className="block text-xs text-latspace-medium mb-grid uppercase tracking-wider">
+                          Evidence
+                        </label>
+                        <div className={`w-full px-grid-2 border h-[42px] flex items-center justify-center transition-colors ${
+                          (paramData.attachedFiles?.length || 0) > 0 
+                            ? 'border-green-500 bg-green-50' 
+                            : 'border-gray-300 hover:border-latspace-dark focus-within:border-latspace-dark'
+                        }`}>
+                          <AttachButton 
+                            section={activeSection}
+                            field={field.key}
+                            subsection={activeSection === 'fuel_data' ? activeFuelSubsection : undefined}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1320,12 +1647,32 @@ export const ManualEntry: React.FC = () => {
           <h3 className="text-xs font-semibold text-latspace-dark mb-grid-2 uppercase tracking-wider">Data Entry Guidelines</h3>
           <ul className="text-xs text-latspace-medium space-y-grid font-mono">
             <li>• DATA IS AUTOMATICALLY SAVED AS YOU TYPE</li>
+            <li>• ATTACH SUPPORTING DOCUMENTS FOR EVIDENCE</li>
             <li>• SAVE EACH SECTION BEFORE MOVING TO NEXT</li>
             <li>• SUBMIT ALL SECTIONS TOGETHER WHEN COMPLETE</li>
             <li>• CONTACT ADMINISTRATOR FOR PRODUCTION DATA ASSISTANCE</li>
           </ul>
         </div>
       </div>
+
+      {/* File Modal */}
+      {fileModalOpen && (() => {
+        const parts = fileModalOpen.split('-');
+        const section = parts[0] as keyof FormData;
+        const isfuel = section === 'fuel_data';
+        const subsection = isfuel ? parts[1] : undefined;
+        const field = isfuel ? parts.slice(2).join('-') : parts.slice(1).join('-');
+        
+        return (
+          <FileModal
+            isOpen={true}
+            onClose={() => setFileModalOpen(null)}
+            section={section}
+            field={field}
+            subsection={subsection}
+          />
+        );
+      })()}
     </Layout>
   );
 };
