@@ -285,8 +285,8 @@ export const DocumentUpload: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between border-b border-gray-200 pb-6">
           <h1 className="text-3xl font-bold text-latspace-dark tracking-tight">Document Upload</h1>
-          <div className="text-xs text-latspace-medium font-mono uppercase tracking-wider bg-gray-50 px-3 py-1.5 rounded-md">
-            PDF, WORD, IMAGES, EXCEL (MAX 10MB)
+          <div className="text-xs text-latspace-medium font-mono bg-gray-50 px-3 py-1.5 rounded-md">
+            PDF, Word, Images, Excel (Max 10MB)
           </div>
         </div>
 
@@ -295,7 +295,7 @@ export const DocumentUpload: React.FC = () => {
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-3">
               <Calendar className="w-5 h-5 text-latspace-dark" />
-              <h3 className="text-lg font-semibold text-latspace-dark tracking-wide">Reporting Period</h3>
+              <h3 className="text-lg font-semibold text-latspace-dark">Reporting Period</h3>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -343,7 +343,7 @@ export const DocumentUpload: React.FC = () => {
                 onDrop={(e) => handleDrop(e, docType)}
               >
                 <div className="mb-6">{config.icon}</div>
-                <h3 className="text-sm font-bold text-latspace-dark mb-3 uppercase tracking-wide leading-tight">
+                <h3 className="text-sm font-bold text-latspace-dark mb-3 leading-tight">
                   {config.title}
                 </h3>
                 <p className="text-latspace-medium mb-4 text-sm leading-relaxed px-2">
@@ -362,7 +362,7 @@ export const DocumentUpload: React.FC = () => {
                 />
                 <label
                   htmlFor={`file-upload-${docType}`}
-                  className="inline-flex items-center px-6 py-3 bg-latspace-dark text-white hover:bg-latspace-medium transition-all duration-200 cursor-pointer uppercase text-xs font-bold tracking-wider rounded-md shadow-sm hover:shadow-md transform hover:scale-105"
+                  className="inline-flex items-center px-6 py-3 bg-latspace-dark text-white hover:bg-latspace-medium transition-all duration-200 cursor-pointer text-xs font-bold rounded-md shadow-sm hover:shadow-md transform hover:scale-105"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Choose Files
@@ -384,7 +384,7 @@ export const DocumentUpload: React.FC = () => {
                 <div key={docType} className="bg-white border border-gray-200 rounded-lg shadow-sm">
                   <div className="px-6 py-4 border-b border-gray-200 flex items-center bg-gray-50 rounded-t-lg">
                     <div className="mr-4">{config.icon}</div>
-                    <h3 className="text-lg font-bold text-latspace-dark uppercase tracking-wide">
+                    <h3 className="text-lg font-bold text-latspace-dark">
                       {config.title}
                     </h3>
                     <span className="ml-auto text-sm text-latspace-medium font-mono bg-white px-3 py-1.5 rounded-md border">
@@ -399,7 +399,7 @@ export const DocumentUpload: React.FC = () => {
                             {getFileIcon(file.type)}
                             <div className="ml-4">
                               <p className="text-sm font-semibold text-latspace-dark">{file.name}</p>
-                              <p className="text-xs text-latspace-medium font-mono data-value">{formatFileSize(file.size)}</p>
+                              <p className="text-xs text-latspace-medium font-mono">{formatFileSize(file.size)}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-3">
@@ -417,15 +417,15 @@ export const DocumentUpload: React.FC = () => {
                         {file.status !== 'completed' && (
                           <div className="mb-4">
                             <div className="flex justify-between text-xs mb-2">
-                              <span className="text-latspace-medium uppercase tracking-wider flex items-center">
+                              <span className="text-latspace-medium flex items-center">
                                 {file.status === 'uploading' && (
-                                  <><Upload className="w-3 h-3 mr-1 animate-pulse" /> UPLOADING</>
+                                  <><Upload className="w-3 h-3 mr-1 animate-pulse" /> Uploading</>
                                 )}
                                 {file.status === 'processing' && (
-                                  <><Database className="w-3 h-3 mr-1 animate-spin" /> AI PROCESSING</>
+                                  <><Database className="w-3 h-3 mr-1 animate-spin" /> AI Processing</>
                                 )}
                               </span>
-                              <span className="font-mono text-latspace-dark data-value">{file.progress}%</span>
+                              <span className="font-mono text-latspace-dark">{file.progress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
                               <div
@@ -439,7 +439,7 @@ export const DocumentUpload: React.FC = () => {
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce"></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                  <span className="uppercase tracking-wider">Extracting ESG data...</span>
+                                  <span>Extracting ESG data...</span>
                                 </div>
                               </div>
                             )}
@@ -448,25 +448,25 @@ export const DocumentUpload: React.FC = () => {
 
                         {/* Enhanced Data Review Interface */}
                         {file.status === 'completed' && file.extractedData && (
-                          <div className="border border-latspace-dark p-4 mt-3">
+                          <div className="border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-50 p-6 mt-3 rounded-lg shadow-sm">
                             <div className="flex items-center justify-between mb-4">
-                              <h4 className="text-sm font-semibold text-latspace-dark flex items-center uppercase tracking-wider">
+                              <h4 className="text-sm font-semibold text-latspace-dark flex items-center">
                                 <Database className="w-4 h-4 mr-2" />
                                 Extracted Data - Review Required
                               </h4>
                               <div className="flex items-center space-x-2">
                                 {file.reviewStatus === 'reviewing' && (
-                                  <span className="text-xs text-orange-500 font-mono uppercase px-2 py-1 bg-orange-50 border border-orange-200 rounded">
+                                  <span className="text-xs text-orange-500 font-mono px-2 py-1 bg-orange-50 border border-orange-200 rounded">
                                     Pending Review
                                   </span>
                                 )}
                                 {file.reviewStatus === 'approved' && (
-                                  <span className="text-xs text-green-600 font-mono uppercase px-2 py-1 bg-green-50 border border-green-200 rounded">
+                                  <span className="text-xs text-green-600 font-mono px-2 py-1 bg-green-50 border border-green-200 rounded">
                                     Approved
                                   </span>
                                 )}
                                 {file.reviewStatus === 'rejected' && (
-                                  <span className="text-xs text-red-600 font-mono uppercase px-2 py-1 bg-red-50 border border-red-200 rounded">
+                                  <span className="text-xs text-red-600 font-mono px-2 py-1 bg-red-50 border border-red-200 rounded">
                                     Rejected
                                   </span>
                                 )}
@@ -477,7 +477,7 @@ export const DocumentUpload: React.FC = () => {
                               {file.extractedData.map((dataItem, index) => (
                                 <div key={index} className="flex items-center justify-between border-b border-gray-100 pb-2">
                                   <div className="flex-1">
-                                    <label className="text-xs font-semibold text-latspace-dark uppercase tracking-wider block mb-1">
+                                    <label className="text-xs font-semibold text-latspace-dark block mb-1">
                                       {dataItem.label}
                                     </label>
                                     {file.reviewStatus === 'editing' && dataItem.editable ? (
@@ -534,13 +534,13 @@ export const DocumentUpload: React.FC = () => {
                                     onClick={() => setFiles(prev => prev.map(f => 
                                       f.id === file.id ? { ...f, reviewStatus: 'reviewing' as ReviewStatus } : f
                                     ))}
-                                    className="px-3 py-2 border border-gray-300 text-latspace-medium hover:bg-gray-50 transition-colors text-xs font-semibold uppercase tracking-wider rounded"
+                                    className="px-3 py-2 border border-gray-300 text-latspace-medium hover:bg-gray-50 transition-colors text-xs font-semibold rounded"
                                   >
                                     Cancel
                                   </button>
                                   <button
                                     onClick={() => saveEditedFile(file.id)}
-                                    className="px-3 py-2 bg-latspace-dark text-white hover:bg-latspace-medium transition-colors text-xs font-semibold uppercase tracking-wider rounded"
+                                    className="px-3 py-2 bg-latspace-dark text-white hover:bg-latspace-medium transition-colors text-xs font-semibold rounded"
                                   >
                                     <Check className="w-4 h-4 mr-1 inline" />
                                     Save & Approve
@@ -548,7 +548,7 @@ export const DocumentUpload: React.FC = () => {
                                 </>
                               )}
                               {file.reviewStatus === 'approved' && (
-                                <span className="text-xs text-green-600 font-mono uppercase flex items-center">
+                                <span className="text-xs text-green-600 font-mono flex items-center">
                                   <CheckCircle className="w-4 h-4 mr-1" />
                                   Data Approved
                                 </span>
@@ -559,8 +559,8 @@ export const DocumentUpload: React.FC = () => {
 
                         {file.status === 'error' && (
                           <div className="border border-red-300 bg-red-50 p-3 mt-2 rounded">
-                            <p className="text-xs text-red-600 font-mono uppercase">
-                              {file.error || 'ERROR: FILE PROCESSING FAILED'}
+                            <p className="text-xs text-red-600 font-mono">
+                              {file.error || 'Error: File processing failed'}
                             </p>
                           </div>
                         )}
@@ -574,78 +574,78 @@ export const DocumentUpload: React.FC = () => {
         )}
 
         <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-          <h3 className="text-xl font-bold text-latspace-dark mb-6 uppercase tracking-wide">AI Document Processing & Review Workflow</h3>
+          <h3 className="text-xl font-bold text-latspace-dark mb-6">AI Document Processing & Review Workflow</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
             <div className="space-y-3">
-              <h4 className="font-semibold text-latspace-dark uppercase tracking-wider flex items-center">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
                 <Factory className="w-4 h-4 mr-1" />
                 Production Reports
               </h4>
               <div className="space-y-2">
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">Output volumes & efficiency metrics</span>
+                  <span className="text-latspace-medium">Output volumes & efficiency metrics</span>
                 </div>
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">Operating hours & downtime tracking</span>
+                  <span className="text-latspace-medium">Operating hours & downtime tracking</span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-latspace-dark uppercase tracking-wider flex items-center">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
                 <Leaf className="w-4 h-4 mr-1" />
                 Environmental Data
               </h4>
               <div className="space-y-2">
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">NOx, SOx, particulate matter readings</span>
+                  <span className="text-latspace-medium">NOx, SOx, particulate matter readings</span>
                 </div>
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">Compliance status verification</span>
+                  <span className="text-latspace-medium">Compliance status verification</span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-latspace-dark uppercase tracking-wider flex items-center">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
                 <Zap className="w-4 h-4 mr-1" />
                 Energy Consumption
               </h4>
               <div className="space-y-2">
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">Total kWh consumption & peak demand</span>
+                  <span className="text-latspace-medium">Total kWh consumption & peak demand</span>
                 </div>
                 <div className="flex items-start">
                   <span className="text-latspace-medium mr-3">•</span>
-                  <span className="text-latspace-medium uppercase tracking-wider">Billing costs & power factor analysis</span>
+                  <span className="text-latspace-medium">Billing costs & power factor analysis</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="border-t border-gray-200 mt-8 pt-6">
-            <h4 className="font-bold text-latspace-dark uppercase tracking-wider mb-4 text-base">Review & Approval Process</h4>
+            <h4 className="font-bold text-latspace-dark mb-4 text-base">Review & Approval Process</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">1.</span>
-                <span className="text-latspace-medium uppercase tracking-wider">AI processes documents and extracts relevant ESG data</span>
+                <span className="text-latspace-medium">AI processes documents and extracts relevant ESG data</span>
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">2.</span>
-                <span className="text-latspace-medium uppercase tracking-wider">Review extracted data for accuracy and completeness</span>
+                <span className="text-latspace-medium">Review extracted data for accuracy and completeness</span>
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">3.</span>
-                <span className="text-latspace-medium uppercase tracking-wider">Edit values if needed, then approve or reject</span>
+                <span className="text-latspace-medium">Edit values if needed, then approve or reject</span>
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">4.</span>
-                <span className="text-latspace-medium uppercase tracking-wider">Approved data integrates into facility ESG metrics</span>
+                <span className="text-latspace-medium">Approved data integrates into facility ESG metrics</span>
               </div>
             </div>
           </div>
