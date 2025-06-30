@@ -692,6 +692,7 @@ export const ManualEntry: React.FC = () => {
   const [savedSections, setSavedSections] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileModalOpen, setFileModalOpen] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string | null }>({});
 
   // File validation settings
   const allowedFileTypes = [
@@ -704,7 +705,41 @@ export const ManualEntry: React.FC = () => {
   ];
   const maxFileSize = 10 * 1024 * 1024; // 10MB
 
+  // Validation function
+  const validateValue = (value: string): string | null => {
+    if (value === '' || value === undefined) return null; // Allow empty values
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return null; // Allow non-numeric values to be handled by input type
+    
+    if (numValue < 0) {
+      return 'Anomalous value entered: negative values are not allowed';
+    }
+    
+    if (numValue > 500000) {
+      return 'Anomalous value entered: values greater than 500,000 are not allowed';
+    }
+    
+    return null;
+  };
+
   const handleInputChange = (section: keyof FormData, field: string, dataType: 'value' | 'month' | 'year', value: string, subsection?: string) => {
+    // Generate unique field key for validation tracking
+    const fieldKey = subsection ? `${section}-${subsection}-${field}` : `${section}-${field}`;
+    
+    // Validate numeric values
+    if (dataType === 'value') {
+      const validationError = validateValue(value);
+      setValidationErrors(prev => ({
+        ...prev,
+        [fieldKey]: validationError
+      }));
+      
+      // If there's a validation error, don't update the form data
+      if (validationError) {
+        return;
+      }
+    }
     if (section === 'fuel_data' && subsection) {
       // Handle nested fuel data structure
       const fuelSubsection = formData.fuel_data[subsection as keyof typeof formData.fuel_data];
@@ -860,6 +895,13 @@ export const ManualEntry: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    // Check for validation errors before submitting
+    const hasValidationErrors = Object.values(validationErrors).some(error => error !== null);
+    if (hasValidationErrors) {
+      alert('Please fix all validation errors before submitting.');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Count total attached files
@@ -1523,22 +1565,42 @@ export const ManualEntry: React.FC = () => {
                           Value
                         </label>
                         <div className="relative">
-                          <input
-                            type={field.type}
-                            value={paramData.value}
-                            onChange={(e) => 
-                              activeSection === 'fuel_data'
-                                ? handleInputChange(activeSection, field.key, 'value', e.target.value, activeFuelSubsection)
-                                : handleInputChange(activeSection, field.key, 'value', e.target.value)
-                            }
-                            className="w-full h-[42px] px-grid-2 pr-grid-6 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm"
-                            placeholder="0.00"
-                          />
-                          {field.unit && (
-                            <div className="absolute right-grid-3 top-1/2 transform -translate-y-1/2 text-latspace-medium text-xs font-mono pointer-events-none">
-                              {field.unit}
-                            </div>
-                          )}
+                          {(() => {
+                            const fieldKey = activeSection === 'fuel_data' 
+                              ? `${activeSection}-${activeFuelSubsection}-${field.key}`
+                              : `${activeSection}-${field.key}`;
+                            const hasError = validationErrors[fieldKey];
+                            
+                            return (
+                              <>
+                                <input
+                                  type={field.type}
+                                  value={paramData.value}
+                                  onChange={(e) => 
+                                    activeSection === 'fuel_data'
+                                      ? handleInputChange(activeSection, field.key, 'value', e.target.value, activeFuelSubsection)
+                                      : handleInputChange(activeSection, field.key, 'value', e.target.value)
+                                  }
+                                  className={`w-full h-[42px] px-grid-2 pr-grid-6 border font-mono text-sm ${
+                                    hasError 
+                                      ? 'border-red-500 focus:ring-0 focus:border-red-500 bg-red-50' 
+                                      : 'border-gray-300 focus:ring-0 focus:border-latspace-dark'
+                                  }`}
+                                  placeholder="0.00"
+                                />
+                                {field.unit && (
+                                  <div className="absolute right-grid-3 top-1/2 transform -translate-y-1/2 text-latspace-medium text-xs font-mono pointer-events-none">
+                                    {field.unit}
+                                  </div>
+                                )}
+                                {hasError && (
+                                  <div className="mt-1 text-xs text-red-600 font-medium">
+                                    {hasError}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
 

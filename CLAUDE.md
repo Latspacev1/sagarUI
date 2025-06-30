@@ -11,7 +11,6 @@ LatSpace is an Agentic AI Sustainability Management Software built with React an
 - `npm start` - Start development server (http://localhost:3000)
 - `npm run build` - Build for production
 - `npm test` - Run test suite
-- `npm run lint` - Run linting (if configured)
 
 ## Architecture Overview
 
