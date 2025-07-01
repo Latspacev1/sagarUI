@@ -171,49 +171,7 @@ export const AdminDashboard: React.FC = () => {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white border border-gray-200 p-grid-4">
-                <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Parameter Categories</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="count"
-                      label={({ name, count }) => `${name}: ${count}`}
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="bg-white border border-gray-200 p-grid-4">
-                <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Quick Access</h3>
-                <div className="space-y-grid-2">
-                  <p className="text-sm text-latspace-medium mb-grid-3">
-                    Search and analyze any of the {parameterRegistry.length} tracked parameters across Production, Energy, and Emissions categories.
-                  </p>
-                  <div className="grid grid-cols-3 gap-grid-2 text-center">
-                    <div className="p-grid-3 border border-gray-200">
-                      <div className="text-2xl font-mono text-blue-600 data-value">{parameterRegistry.filter(p => p.category === 'production').length}</div>
-                      <div className="text-xs text-latspace-medium uppercase tracking-wider">Production KPIs</div>
-                    </div>
-                    <div className="p-grid-3 border border-gray-200">
-                      <div className="text-2xl font-mono text-green-600 data-value">{parameterRegistry.filter(p => p.category === 'energy').length}</div>
-                      <div className="text-xs text-latspace-medium uppercase tracking-wider">Energy Metrics</div>
-                    </div>
-                    <div className="p-grid-3 border border-gray-200">
-                      <div className="text-2xl font-mono text-red-600 data-value">{parameterRegistry.filter(p => p.category === 'emissions').length}</div>
-                      <div className="text-xs text-latspace-medium uppercase tracking-wider">Emission Data</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            
             </div>
           )}
 
