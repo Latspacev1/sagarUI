@@ -221,29 +221,30 @@ export function generateFacilityParameters(facilityConfig: FacilityConfig): Para
     }
   ];
 
-  // Base values for different parameter types
+  // Base values for different parameter types - based on Mattampally actual data
   const baseValues: Record<string, number> = {
-    // Production (annual values)
+    // Production (annual values) - scaled appropriately by facility type and capacity
     clinker_production: facilityConfig.type === 'integrated' ? 1679081 : 0,
-    clinker_consumed: 1108944,
+    clinker_consumed: facilityConfig.type === 'integrated' ? 1108944 : 
+                     Math.round(1371802 * 0.8), // For grinding units, clinker consumed ≈ 80% of cement production
     total_cement_produced: 1371802,
-    total_opc_produced: 758545,
-    total_ppc_produced: 574619,
-    clinker_factor: 0.81,
-    blended_cements_share: 45,
+    total_opc_produced: Math.round(1371802 * 0.553), // 55.3% OPC based on actual data
+    total_ppc_produced: Math.round(1371802 * 0.419), // 41.9% PPC based on actual data
+    clinker_factor: facilityConfig.type === 'integrated' ? 0.81 : 0.75, // Lower for grinding units
+    blended_cements_share: facilityConfig.type === 'integrated' ? 45 : 40, // Slightly lower for grinding
 
-    // Energy (rates and ratios)
-    specific_heat_consumption: facilityConfig.type === 'integrated' ? 711 : 0,
-    specific_power_consumption_cementitious: 71,
-    tsr_total: facilityConfig.type === 'integrated' ? 9 : 0,
-    ratio_electrical_green_energy: 25.39,
-    plant_load_factor: 68,
+    // Energy (rates and ratios) - realistic values based on facility type
+    specific_heat_consumption: facilityConfig.type === 'integrated' ? 711 : 0, // Only for integrated plants
+    specific_power_consumption_cementitious: facilityConfig.type === 'integrated' ? 71 : 35, // Lower for grinding
+    tsr_total: facilityConfig.type === 'integrated' ? 9 : 0, // Only integrated plants use alternative fuels
+    ratio_electrical_green_energy: facilityConfig.type === 'integrated' ? 25.39 : 15, // Lower for grinding units
+    plant_load_factor: facilityConfig.type === 'integrated' ? 68 : 0, // Only integrated plants have CPP
 
-    // Emissions
-    scope1_total: 1441674,
-    emission_intensity_scope1: 742,
-    emission_intensity_scope2: 6,
-    emission_intensity_total: 752
+    // Emissions - much lower for grinding units
+    scope1_total: facilityConfig.type === 'integrated' ? 1441674 : Math.round(1441674 * 0.05), // 5% for grinding
+    emission_intensity_scope1: facilityConfig.type === 'integrated' ? 742 : 45, // Much lower for grinding
+    emission_intensity_scope2: 6, // Grid power emissions - similar for both types
+    emission_intensity_total: facilityConfig.type === 'integrated' ? 752 : 52 // Total for grinding ≈ 50-55
   };
 
   return baseParameters.map(param => {

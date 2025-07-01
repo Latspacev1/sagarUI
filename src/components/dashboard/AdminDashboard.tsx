@@ -1,64 +1,53 @@
 import React, { useState } from 'react';
-import { mockFacilities, Parameter, parameterRegistry } from '../../utils/mockData';
-import { Factory, Zap, Leaf, Target, TrendingUp, BarChart3, Activity, Download } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Parameter, parameterRegistry } from '../../utils/mockData';
+import { calculateAggregatedMetrics, getAggregatedProductionData, getAggregatedEnergyData, getFacilityBreakdownData } from '../../utils/aggregationUtils';
+import { Factory, Zap, Leaf, Target, Activity, Download } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ParameterSearch } from './ParameterSearch';
 import { ParameterChart } from './ParameterChart';
-import { downloadTxtFile, formatChartDataForTxt, formatMetricsForTxt } from '../../utils/exportUtils';
+import { downloadTxtFile, formatChartDataForTxt } from '../../utils/exportUtils';
 
 export const AdminDashboard: React.FC = () => {
   const [selectedParameter, setSelectedParameter] = useState<Parameter | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'production' | 'energy' | 'emissions'>('overview');
 
-  // Get key metrics from parameter registry for Mattampally (since it's the facility with actual data)
-  const getParameterValue = (id: string) => {
-    const param = parameterRegistry.find(p => p.id === id);
-    return param ? param.ytd : 0;
-  };
+  // Get aggregated metrics for group dashboard
+  const aggregatedMetrics = calculateAggregatedMetrics();
 
-  // Key operational metrics
+  // Key operational metrics - group aggregated data
   const keyMetrics = {
-    clinkerProduction: getParameterValue('clinker_production'),
-    cementProduction: getParameterValue('total_cement_produced'),
-    specificHeatConsumption: getParameterValue('specific_heat_consumption'),
-    specificPowerConsumption: getParameterValue('specific_power_consumption_cementitious'),
-    tsrTotal: getParameterValue('tsr_total'),
-    renewableEnergyRatio: getParameterValue('ratio_electrical_green_energy'),
-    scope1Emissions: getParameterValue('scope1_total'),
-    emissionIntensity: getParameterValue('emission_intensity_total'),
-    plantLoadFactor: getParameterValue('plant_load_factor')
+    clinkerProduction: aggregatedMetrics.totalClinkerProduction,
+    cementProduction: aggregatedMetrics.totalCementProduction,
+    specificHeatConsumption: aggregatedMetrics.weightedSpecificHeatConsumption,
+    specificPowerConsumption: aggregatedMetrics.weightedSpecificPowerConsumption,
+    tsrTotal: aggregatedMetrics.weightedTSR,
+    renewableEnergyRatio: aggregatedMetrics.weightedRenewableEnergyRatio,
+    scope1Emissions: aggregatedMetrics.totalScope1Emissions,
+    emissionIntensity: aggregatedMetrics.weightedEmissionIntensityTotal,
+    plantLoadFactor: aggregatedMetrics.weightedPlantLoadFactor
   };
 
   // Production overview data for charts
-  const productionData = [
-    { name: 'Clinker', value: keyMetrics.clinkerProduction, color: '#074D47' },
-    { name: 'Cement', value: keyMetrics.cementProduction, color: '#22867C' }
-  ];
+  const productionData = getAggregatedProductionData();
 
   // Energy breakdown data
-  const energyData = [
-    { category: 'Specific Heat', value: keyMetrics.specificHeatConsumption, unit: 'kcal/kg', target: 700 },
-    { category: 'Specific Power', value: keyMetrics.specificPowerConsumption, unit: 'kWh/t', target: 65 },
-    { category: 'Renewable Energy', value: keyMetrics.renewableEnergyRatio, unit: '%', target: 30 }
-  ];
+  const energyData = getAggregatedEnergyData();
 
-  // Category distribution
-  const categoryData = [
-    { name: 'Production KPIs', count: parameterRegistry.filter(p => p.category === 'production').length, color: '#3B82F6' },
-    { name: 'Energy Metrics', count: parameterRegistry.filter(p => p.category === 'energy').length, color: '#10B981' },
-    { name: 'Emissions Data', count: parameterRegistry.filter(p => p.category === 'emissions').length, color: '#EF4444' }
-  ];
 
   return (
     <div className="space-y-grid-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-grid-3">
         <div>
-          <h1 className="text-2xl font-semibold text-latspace-dark">Sagar Cements Limited Dashboard</h1>
-          <p className="text-sm text-latspace-medium mt-1">Sustainability Management System</p>
+          <h1 className="text-2xl font-semibold text-latspace-dark">
+            Sagar Cements Group Dashboard
+          </h1>
+          <p className="text-sm text-latspace-medium mt-1">
+            {aggregatedMetrics.facilitiesCount} Facilities • {aggregatedMetrics.totalCapacityMTPA.toFixed(1)} MTPA Total Capacity
+          </p>
         </div>
         <div className="text-sm text-latspace-medium font-mono">
-          Mattampally Plant • {new Date().toLocaleDateString()}
+          Group Dashboard • {new Date().toLocaleDateString()}
         </div>
       </div>
 
@@ -74,8 +63,13 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center">
             <Factory className="w-6 h-6 text-blue-600" />
             <div className="ml-grid-2">
-              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">Clinker Production</p>
-              <p className="text-xl font-mono text-latspace-dark data-value">{(keyMetrics.clinkerProduction / 1000000).toFixed(1)}M Tons</p>
+              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">
+                Total Group Clinker Production
+              </p>
+              <p className="text-xl font-mono text-latspace-dark data-value">
+                {(keyMetrics.clinkerProduction / 1000000).toFixed(1)}M Tons
+                <span className="text-sm text-latspace-medium ml-2">({aggregatedMetrics.integratedPlantsCount} plants)</span>
+              </p>
             </div>
           </div>
         </div>
@@ -84,8 +78,12 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center">
             <Zap className="w-6 h-6 text-green-600" />
             <div className="ml-grid-2">
-              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">Energy Efficiency</p>
-              <p className="text-xl font-mono text-latspace-dark data-value">{keyMetrics.specificHeatConsumption} kcal/kg</p>
+              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">
+                Group Energy Efficiency (Weighted Avg)
+              </p>
+              <p className="text-xl font-mono text-latspace-dark data-value">
+                {keyMetrics.specificHeatConsumption > 0 ? `${keyMetrics.specificHeatConsumption.toFixed(0)} kcal/kg` : 'N/A'}
+              </p>
             </div>
           </div>
         </div>
@@ -94,8 +92,12 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center">
             <Leaf className="w-6 h-6 text-red-600" />
             <div className="ml-grid-2">
-              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">Emission Intensity</p>
-              <p className="text-xl font-mono text-latspace-dark data-value">{keyMetrics.emissionIntensity} kg CO2/t</p>
+              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">
+                Group Emission Intensity (Weighted Avg)
+              </p>
+              <p className="text-xl font-mono text-latspace-dark data-value">
+                {keyMetrics.emissionIntensity.toFixed(0)} kg CO2/t
+              </p>
             </div>
           </div>
         </div>
@@ -104,8 +106,13 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center">
             <Target className="w-6 h-6 text-latspace-dark" />
             <div className="ml-grid-2">
-              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">Renewable Energy</p>
-              <p className="text-xl font-mono text-latspace-dark data-value">{keyMetrics.renewableEnergyRatio}%</p>
+              <p className="text-xs font-semibold text-latspace-medium uppercase tracking-wider">
+                Group Renewable Energy (Weighted Avg)
+              </p>
+              <p className="text-xl font-mono text-latspace-dark data-value">
+                {keyMetrics.renewableEnergyRatio.toFixed(1)}%
+                <span className="text-sm text-latspace-medium ml-2">across all facilities</span>
+              </p>
             </div>
           </div>
         </div>
@@ -147,11 +154,13 @@ export const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
               <div className="bg-white border border-gray-200 p-grid-4">
                 <div className="flex items-center justify-between mb-grid-3">
-                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Production Overview</h3>
+                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">
+                    Group Production Overview
+                  </h3>
                   <button
                     onClick={() => {
-                      const content = formatChartDataForTxt(productionData, 'Production Overview', 'name', 'value');
-                      downloadTxtFile(content, 'Admin_Production_Overview.txt');
+                      const content = formatChartDataForTxt(productionData, 'Group Production Overview', 'name', 'value');
+                      downloadTxtFile(content, 'Group_Production_Overview.txt');
                     }}
                     className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
                     title="Export Chart Data"
@@ -168,15 +177,21 @@ export const AdminDashboard: React.FC = () => {
                     <Bar dataKey="value" fill="#3B82F6" />
                   </BarChart>
                 </ResponsiveContainer>
+                <div className="mt-4 text-sm text-latspace-medium">
+                  <p>Total Group Capacity: {aggregatedMetrics.totalCapacityMTPA.toFixed(1)} MTPA</p>
+                  <p>Active Facilities: {aggregatedMetrics.integratedPlantsCount} Integrated + {aggregatedMetrics.grindingUnitsCount} Grinding Units</p>
+                </div>
               </div>
 
               <div className="bg-white border border-gray-200 p-grid-4">
                 <div className="flex items-center justify-between mb-grid-3">
-                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Energy Performance vs Targets</h3>
+                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">
+                    Group Energy Performance vs Targets
+                  </h3>
                   <button
                     onClick={() => {
-                      const content = formatChartDataForTxt(energyData, 'Energy Performance vs Targets', 'category', 'value');
-                      downloadTxtFile(content, 'Admin_Energy_Performance.txt');
+                      const content = formatChartDataForTxt(energyData, 'Group Energy Performance vs Targets', 'category', 'value');
+                      downloadTxtFile(content, 'Group_Energy_Performance.txt');
                     }}
                     className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
                     title="Export Chart Data"
@@ -194,8 +209,61 @@ export const AdminDashboard: React.FC = () => {
                     <Bar dataKey="target" fill="#89E4DA" name="Target" />
                   </BarChart>
                 </ResponsiveContainer>
+                <div className="mt-4 text-sm text-latspace-medium">
+                  <p>Note: Values shown are production-weighted averages across all facilities</p>
+                  <p>Data completeness: {aggregatedMetrics.averageDataCompleteness.toFixed(1)}% average</p>
+                </div>
               </div>
 
+              {/* Facility Breakdown Chart */}
+              <div className="bg-white border border-gray-200 p-grid-4 col-span-2">
+                <div className="flex items-center justify-between mb-grid-3">
+                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Facility-wise Production Breakdown</h3>
+                  <button
+                    onClick={() => {
+                      const facilityData = getFacilityBreakdownData('cement');
+                      const content = formatChartDataForTxt(facilityData, 'Facility-wise Cement Production', 'name', 'value');
+                      downloadTxtFile(content, 'Group_Facility_Breakdown.txt');
+                    }}
+                    className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+                    title="Export Chart Data"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getFacilityBreakdownData('cement')}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value: number, name: string, props: any) => [
+                        `${value.toLocaleString()} Tons`,
+                        'Cement Production'
+                      ]}
+                      labelFormatter={(label: string, payload: any) => {
+                        const data = payload?.[0]?.payload;
+                        return data ? `${label} (${data.type === 'integrated' ? 'Integrated' : 'Grinding'}, ${data.capacity})` : label;
+                      }}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      fill="#3B82F6"
+                      name="Cement Production"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-4 flex items-center space-x-6 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <span>Integrated Plants ({aggregatedMetrics.integratedPlantsCount})</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Grinding Units ({aggregatedMetrics.grindingUnitsCount})</span>
+                  </div>
+                </div>
+              </div>
             
             </div>
           )}
