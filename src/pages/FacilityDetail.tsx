@@ -22,6 +22,7 @@ import {
 } from 'recharts';
 import { ParameterSearch } from '../components/dashboard/ParameterSearch';
 import { ParameterChart } from '../components/dashboard/ParameterChart';
+import { downloadTxtFile, formatChartDataForTxt } from '../utils/exportUtils';
 
 export const FacilityDetail: React.FC = () => {
   const { facilityId } = useParams<{ facilityId: string }>();
@@ -253,9 +254,23 @@ export const FacilityDetail: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
                 {/* Production Trends */}
                 <div className="bg-white border border-gray-200 p-grid-4">
-                  <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">
-                    {facility.type === 'integrated' ? 'Production Trends (11 Months)' : 'Cement Production Trends (11 Months)'}
-                  </h3>
+                  <div className="flex items-center justify-between mb-grid-3">
+                    <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">
+                      {facility.type === 'integrated' ? 'Production Trends (11 Months)' : 'Cement Production Trends (11 Months)'}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        if (monthlyData) {
+                          const content = formatChartDataForTxt(monthlyData.production, 'Production Trends', 'month', 'cementProduction');
+                          downloadTxtFile(content, `${facility.name}_Production_Trends.txt`);
+                        }
+                      }}
+                      className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+                      title="Export Chart Data"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
                   {monthlyData && (
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={monthlyData.production}>
@@ -286,9 +301,21 @@ export const FacilityDetail: React.FC = () => {
 
                 {/* Performance Radar */}
                 <div className="bg-white border border-gray-200 p-grid-4">
-                  <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">
-                    Plant Performance Overview
-                  </h3>
+                  <div className="flex items-center justify-between mb-grid-3">
+                    <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">
+                      Plant Performance Overview
+                    </h3>
+                    <button
+                      onClick={() => {
+                        const content = formatChartDataForTxt(radarData, 'Plant Performance Overview', 'metric', 'value');
+                        downloadTxtFile(content, `${facility.name}_Performance_Overview.txt`);
+                      }}
+                      className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+                      title="Export Chart Data"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
                   <ResponsiveContainer width="100%" height={300}>
                     <RadarChart data={radarData}>
                       <PolarGrid />

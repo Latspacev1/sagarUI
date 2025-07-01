@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { mockFacilities, Parameter, parameterRegistry } from '../../utils/mockData';
-import { Factory, Zap, Leaf, Target, TrendingUp, BarChart3, Activity } from 'lucide-react';
+import { Factory, Zap, Leaf, Target, TrendingUp, BarChart3, Activity, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { ParameterSearch } from './ParameterSearch';
 import { ParameterChart } from './ParameterChart';
+import { downloadTxtFile, formatChartDataForTxt, formatMetricsForTxt } from '../../utils/exportUtils';
 
 export const AdminDashboard: React.FC = () => {
   const [selectedParameter, setSelectedParameter] = useState<Parameter | null>(null);
@@ -145,7 +146,19 @@ export const AdminDashboard: React.FC = () => {
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
               <div className="bg-white border border-gray-200 p-grid-4">
-                <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Production Overview</h3>
+                <div className="flex items-center justify-between mb-grid-3">
+                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Production Overview</h3>
+                  <button
+                    onClick={() => {
+                      const content = formatChartDataForTxt(productionData, 'Production Overview', 'name', 'value');
+                      downloadTxtFile(content, 'Admin_Production_Overview.txt');
+                    }}
+                    className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+                    title="Export Chart Data"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={productionData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -158,7 +171,19 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <div className="bg-white border border-gray-200 p-grid-4">
-                <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Energy Performance vs Targets</h3>
+                <div className="flex items-center justify-between mb-grid-3">
+                  <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Energy Performance vs Targets</h3>
+                  <button
+                    onClick={() => {
+                      const content = formatChartDataForTxt(energyData, 'Energy Performance vs Targets', 'category', 'value');
+                      downloadTxtFile(content, 'Admin_Energy_Performance.txt');
+                    }}
+                    className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+                    title="Export Chart Data"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={energyData}>
                     <CartesianGrid strokeDasharray="3 3" />

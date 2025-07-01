@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Parameter } from '../../utils/mockData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { BarChart3, TrendingUp, Table } from 'lucide-react';
+import { BarChart3, TrendingUp, Table, Download } from 'lucide-react';
+import { downloadTxtFile, formatTableDataForTxt, formatChartDataForTxt } from '../../utils/exportUtils';
 
 interface ParameterChartProps {
   parameter: Parameter;
@@ -73,6 +74,30 @@ export const ParameterChart: React.FC<ParameterChartProps> = ({ parameter }) => 
           >
             <Table className="w-4 h-4" />
           </button>
+          <button
+            onClick={() => {
+              if (viewMode === 'table') {
+                const tableData = parameter.monthlyData.map((data, index) => {
+                  const prevValue = index > 0 ? parameter.monthlyData[index - 1].value : data.value;
+                  const monthlyChange = getChangePercent(data.value, prevValue);
+                  return {
+                    Month: data.month,
+                    [`Value (${parameter.unit})`]: data.value.toLocaleString(),
+                    'Change %': index === 0 ? '-' : `${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(1)}%`
+                  };
+                });
+                const content = formatTableDataForTxt(tableData, `${parameter.name} - Monthly Data`);
+                downloadTxtFile(content, `${parameter.name.replace(/[^a-zA-Z0-9]/g, '_')}_monthly_data.txt`);
+              } else {
+                const content = formatChartDataForTxt(parameter.monthlyData, `${parameter.name} - Chart Data`, 'month', 'value');
+                downloadTxtFile(content, `${parameter.name.replace(/[^a-zA-Z0-9]/g, '_')}_chart_data.txt`);
+              }
+            }}
+            className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+            title="Export Data"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -142,59 +167,61 @@ export const ParameterChart: React.FC<ParameterChartProps> = ({ parameter }) => 
       {viewMode === 'table' && (
         <div className="border border-gray-200">
           <div className="bg-gray-50 px-grid-3 py-grid-2 border-b border-gray-200">
-            <h4 className="text-sm font-semibold text-latspace-dark uppercase tracking-wider">Monthly Data</h4>
+            <h4 className="text-sm font-semibold text-latspace-dark uppercase tracking-wider">Monthly Data - Landscape View</h4>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-grid-3 py-grid-2 text-left text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200">
-                    Month
+                  <th className="px-grid-2 py-grid-2 text-left text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200 min-w-[80px]">
+                    Metric
                   </th>
-                  <th className="px-grid-3 py-grid-2 text-right text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200">
-                    Value ({parameter.unit})
-                  </th>
-                  <th className="px-grid-3 py-grid-2 text-right text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200">
-                    Change %
+                  {parameter.monthlyData.map((data) => (
+                    <th key={data.month} className="px-grid-2 py-grid-2 text-center text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200 min-w-[60px]">
+                      {data.month}
+                    </th>
+                  ))}
+                  <th className="px-grid-2 py-grid-2 text-center text-xs font-semibold text-latspace-dark uppercase tracking-wider border-b border-gray-200 min-w-[80px]">
+                    YTD Total
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {parameter.monthlyData.map((data, index) => {
-                  const prevValue = index > 0 ? parameter.monthlyData[index - 1].value : data.value;
-                  const monthlyChange = getChangePercent(data.value, prevValue);
-                  
-                  return (
-                    <tr key={data.month} className="border-b border-gray-100">
-                      <td className="px-grid-3 py-grid-2 text-sm font-mono text-latspace-dark">
-                        {data.month}
-                      </td>
-                      <td className="px-grid-3 py-grid-2 text-sm font-mono text-latspace-dark text-right data-value">
-                        {data.value.toLocaleString()}
-                      </td>
-                      <td className={`px-grid-3 py-grid-2 text-sm font-mono text-right ${
+                <tr className="border-b border-gray-100">
+                  <td className="px-grid-2 py-grid-2 text-sm font-semibold text-latspace-dark bg-gray-50">
+                    Value ({parameter.unit})
+                  </td>
+                  {parameter.monthlyData.map((data) => (
+                    <td key={data.month} className="px-grid-2 py-grid-2 text-sm font-mono text-latspace-dark text-center data-value">
+                      {formatValue(data.value)}
+                    </td>
+                  ))}
+                  <td className="px-grid-2 py-grid-2 text-sm font-mono font-semibold text-latspace-dark text-center data-value bg-gray-50">
+                    {formatValue(parameter.ytd)}
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="px-grid-2 py-grid-2 text-sm font-semibold text-latspace-dark bg-gray-50">
+                    Change %
+                  </td>
+                  {parameter.monthlyData.map((data, index) => {
+                    const prevValue = index > 0 ? parameter.monthlyData[index - 1].value : data.value;
+                    const monthlyChange = getChangePercent(data.value, prevValue);
+                    
+                    return (
+                      <td key={data.month} className={`px-grid-2 py-grid-2 text-sm font-mono text-center ${
                         index === 0 ? 'text-latspace-medium' : 
                         monthlyChange >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {index === 0 ? '-' : `${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(1)}%`}
                       </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot className="bg-gray-50">
-                <tr>
-                  <td className="px-grid-3 py-grid-2 text-sm font-semibold text-latspace-dark">
-                    YTD Total
-                  </td>
-                  <td className="px-grid-3 py-grid-2 text-sm font-mono font-semibold text-latspace-dark text-right data-value">
-                    {parameter.ytd.toLocaleString()}
-                  </td>
-                  <td className="px-grid-3 py-grid-2 text-sm font-mono text-latspace-medium text-right">
+                    );
+                  })}
+                  <td className="px-grid-2 py-grid-2 text-sm font-mono text-latspace-medium text-center bg-gray-50">
                     -
                   </td>
                 </tr>
-              </tfoot>
+              </tbody>
             </table>
           </div>
         </div>
