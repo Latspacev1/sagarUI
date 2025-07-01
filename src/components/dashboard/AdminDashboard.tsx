@@ -38,13 +38,20 @@ export const AdminDashboard: React.FC = () => {
     <div className="space-y-grid-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-grid-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-latspace-dark">
-            Sagar Cements Group Dashboard
-          </h1>
-          <p className="text-sm text-latspace-medium mt-1">
-            {aggregatedMetrics.facilitiesCount} Facilities • {aggregatedMetrics.totalCapacityMTPA.toFixed(1)} MTPA Total Capacity
-          </p>
+        <div className="flex items-center">
+          <img 
+            src="/sagar-cements-logo.png" 
+            alt="Sagar Cements Logo" 
+            className="h-10 w-auto mr-3 flex-shrink-0"
+          />
+          <div>
+            <h1 className="text-2xl font-semibold text-latspace-dark">
+              Sagar Cements Group Dashboard
+            </h1>
+            <p className="text-sm text-latspace-medium mt-1">
+              {aggregatedMetrics.facilitiesCount} Facilities • {aggregatedMetrics.totalCapacityMTPA.toFixed(1)} MTPA Total Capacity
+            </p>
+          </div>
         </div>
         <div className="text-sm text-latspace-medium font-mono">
           Group Dashboard • {new Date().toLocaleDateString()}
