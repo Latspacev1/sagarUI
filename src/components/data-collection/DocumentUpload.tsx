@@ -106,27 +106,28 @@ export const DocumentUpload: React.FC = () => {
     switch (docType) {
       case 'production':
         return [
-          { key: 'totalOutput', label: 'Total Production Output', value: '2,450', unit: 'tons', editable: true },
-          { key: 'efficiency', label: 'Equipment Efficiency', value: '94.2', unit: '%', editable: true },
-          { key: 'operatingHours', label: 'Operating Hours', value: '168', unit: 'hours', editable: true },
-          { key: 'downtime', label: 'Planned Downtime', value: '4.5', unit: 'hours', editable: true },
-          { key: 'qualityRate', label: 'Quality Pass Rate', value: '98.7', unit: '%', editable: true }
+          { key: 'totalClinkerProduction', label: 'Total Clinker Production', value: '199,906', unit: 't', editable: true },
+          { key: 'totalClinkerConsumption', label: 'Total Clinker Consumption', value: '182,990.98', unit: 't', editable: true },
+          { key: 'totalRawMeal', label: 'Total Raw Meal Production', value: '306,360', unit: 't', editable: true },
+          { key: 'naturalGypsum', label: 'Natural Gypsum for OPC/PPC', value: '0', unit: 't', editable: true },
+          { key: 'limestone', label: 'Limestone', value: '281,802', unit: 't', editable: true },
+          { key: 'cementTotal', label: 'Cement Total', value: '145,228.27', unit: 't', editable: true },
+          { key: 'totalOPC', label: 'Total OPC Produced', value: '114,590.5', unit: 't', editable: true },
+          { key: 'importedPetcokeSaudi', label: 'Imported Petcoke – HC Saudi', value: '4,422', unit: 't', editable: true },
+          { key: 'usPetcoke', label: 'US Petcoke', value: '4,399', unit: 't', editable: true },
+          { key: 'indianCoal', label: 'Indian Coal', value: '17,516', unit: 't', editable: true }
         ];
       case 'environmental':
         return [
-          { key: 'noxEmissions', label: 'NOx Emissions', value: '125.4', unit: 'mg/m³', editable: true },
-          { key: 'soxEmissions', label: 'SOx Emissions', value: '89.2', unit: 'mg/m³', editable: true },
-          { key: 'particulateMatter', label: 'Particulate Matter', value: '15.7', unit: 'mg/m³', editable: true },
-          { key: 'complianceStatus', label: 'Compliance Status', value: 'COMPLIANT', unit: '', editable: false },
-          { key: 'testDate', label: 'Test Date', value: '2024-01-15', unit: '', editable: true }
+          { key: 'dustPm', label: 'Dust / PM', value: '16.50', unit: 'mg/Nm³', editable: true },
+          { key: 'noxEmissions', label: 'NOx (as NO₂-eq.)', value: '328', unit: 'mg/Nm³', editable: true },
+          { key: 'soxEmissions', label: 'SOx (as SO₂)', value: '1.40', unit: 'mg/Nm³', editable: true },
+          { key: 'normalVolumeFlow', label: 'Normal-volume flow', value: '590,691', unit: 'Nm³/h', editable: true }
         ];
       case 'electricity':
         return [
-          { key: 'totalConsumption', label: 'Total Consumption', value: '12,450', unit: 'kWh', editable: true },
-          { key: 'peakDemand', label: 'Peak Demand', value: '850', unit: 'kW', editable: true },
-          { key: 'totalCost', label: 'Total Cost', value: '2,890.50', unit: 'USD', editable: true },
-          { key: 'billingPeriod', label: 'Billing Period', value: '2024-01-01 to 2024-01-31', unit: '', editable: true },
-          { key: 'powerFactor', label: 'Power Factor', value: '0.92', unit: '', editable: true }
+          { key: 'mainConsumption', label: 'Total Consumption', value: '12,52,112', unit: 'kWh', editable: true },
+          { key: 'billingPeriod', label: 'Billing Period', value: '2024-04-01 to 2024-04-31', unit: '', editable: true },
         ];
       default:
         return [];
@@ -439,7 +440,7 @@ export const DocumentUpload: React.FC = () => {
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce"></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                  <span>Extracting ESG data...</span>
+                                  <span>Extracting sustainability data...</span>
                                 </div>
                               </div>
                             )}
@@ -633,7 +634,7 @@ export const DocumentUpload: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">1.</span>
-                <span className="text-latspace-medium">AI processes documents and extracts relevant ESG data</span>
+                <span className="text-latspace-medium">AI processes documents and extracts relevant sustainability data</span>
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">2.</span>
@@ -645,7 +646,7 @@ export const DocumentUpload: React.FC = () => {
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">4.</span>
-                <span className="text-latspace-medium">Approved data integrates into facility ESG metrics</span>
+                <span className="text-latspace-medium">Approved data integrates into facility sustainability metrics</span>
               </div>
             </div>
           </div>

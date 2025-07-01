@@ -14,7 +14,6 @@ export interface Facility {
   capacity: string; // e.g., "3.0 MTPA"
   type: 'integrated' | 'grinding';
   company?: string; // For subsidiaries
-  esgScore: number;
   dataCompleteness: number;
   manager: string;
   lastUpdated: string;

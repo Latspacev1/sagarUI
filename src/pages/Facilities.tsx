@@ -7,8 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export const Facilities: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'esgScore' | 'completion'>('name');
-  const [filterScore, setFilterScore] = useState<'all' | 'excellent' | 'good' | 'improvement'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'completion'>('name');
   const [filterType, setFilterType] = useState<'all' | 'integrated' | 'grinding'>('all');
 
   // Calculate total production capacity
@@ -22,19 +21,12 @@ export const Facilities: React.FC = () => {
                           facility.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           facility.manager.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesFilter = filterScore === 'all' ||
-                          (filterScore === 'excellent' && facility.esgScore >= 90) ||
-                          (filterScore === 'good' && facility.esgScore >= 70 && facility.esgScore < 90) ||
-                          (filterScore === 'improvement' && facility.esgScore < 70);
-      
       const matchesType = filterType === 'all' || facility.type === filterType;
       
-      return matchesSearch && matchesFilter && matchesType;
+      return matchesSearch && matchesType;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'esgScore':
-          return b.esgScore - a.esgScore;
         case 'completion':
           return b.dataCompleteness - a.dataCompleteness;
         default:
@@ -42,11 +34,6 @@ export const Facilities: React.FC = () => {
       }
     });
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-latspace-dark border-latspace-dark';
-    if (score >= 70) return 'text-latspace-medium border-latspace-medium';
-    return 'text-latspace-light border-latspace-light';
-  };
 
   const getCompletionColor = (completion: number) => {
     if (completion >= 90) return 'bg-latspace-dark';
@@ -69,7 +56,7 @@ export const Facilities: React.FC = () => {
 
         {/* Search and Filter Bar */}
         <div className="bg-white p-grid-4 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-grid-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-grid-2">
             <div className="relative">
               <Search className="absolute left-grid-2 top-1/2 transform -translate-y-1/2 text-latspace-medium w-4 h-4" />
               <input
@@ -81,19 +68,6 @@ export const Facilities: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center space-x-grid">
-              <Filter className="text-latspace-medium w-4 h-4" />
-              <select
-                value={filterScore}
-                onChange={(e) => setFilterScore(e.target.value as any)}
-                className="flex-1 px-grid-2 py-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm uppercase"
-              >
-                <option value="all">ALL SCORES</option>
-                <option value="excellent">EXCELLENT (90+)</option>
-                <option value="good">GOOD (70-89)</option>
-                <option value="improvement">NEEDS IMPROVEMENT (&lt;70)</option>
-              </select>
-            </div>
 
             <div className="flex items-center space-x-grid">
               <select
@@ -115,7 +89,6 @@ export const Facilities: React.FC = () => {
                 className="flex-1 px-grid-2 py-grid-2 border border-gray-300 focus:ring-0 focus:border-latspace-dark font-mono text-sm uppercase"
               >
                 <option value="name">NAME</option>
-                <option value="esgScore">ESG SCORE</option>
                 <option value="completion">COMPLETION</option>
               </select>
             </div>
@@ -132,8 +105,8 @@ export const Facilities: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-grid-3">
                 <h3 className="font-semibold text-latspace-dark text-base uppercase tracking-wide">{facility.name}</h3>
-                <div className={`px-grid-2 py-grid text-xs font-mono border ${getScoreColor(facility.esgScore)} data-value`}>
-                  {facility.esgScore}
+                <div className="px-grid-2 py-grid text-xs font-mono border text-latspace-dark border-latspace-dark data-value">
+                  {facility.dataCompleteness}%
                 </div>
               </div>
               <div className="flex items-center text-xs text-latspace-medium mb-grid font-mono">

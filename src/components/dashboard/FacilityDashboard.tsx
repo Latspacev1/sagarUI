@@ -2,8 +2,9 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { mockFacilities, mockESGData, fac1MonthlyData } from '../../utils/mockData';
 import { ProgressBar } from './ProgressBar';
-import { Leaf, Zap, Droplets, Factory, Users, Shield, Heart, Scale, CheckCircle, FileText, Upload, Flame, Gauge } from 'lucide-react';
+import { Leaf, Zap, Droplets, Factory, Users, Shield, Heart, Scale, CheckCircle, FileText, Upload, Flame, Gauge, Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { downloadTxtFile, formatChartDataForTxt, formatMetricsForTxt } from '../../utils/exportUtils';
 
 export const FacilityDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -90,8 +91,8 @@ export const FacilityDashboard: React.FC = () => {
           {facility.company && <p className="text-sm text-latspace-medium font-mono italic">{facility.company}</p>}
         </div>
         <div className="text-right">
-          <div className="text-3xl font-mono text-latspace-dark data-value">{facility.esgScore}</div>
-          <div className="text-xs text-latspace-medium uppercase tracking-wider">ESG Score</div>
+          <div className="text-3xl font-mono text-latspace-dark data-value">{facility.dataCompleteness}%</div>
+          <div className="text-xs text-latspace-medium uppercase tracking-wider">Data Completeness</div>
         </div>
       </div>
 
@@ -106,7 +107,19 @@ export const FacilityDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
         <div className="bg-white border border-gray-200 p-grid-4">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">CO2 & Alternative Fuel Trends</h3>
+          <div className="flex items-center justify-between mb-grid-3">
+            <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">CO2 & Alternative Fuel Trends</h3>
+            <button
+              onClick={() => {
+                const content = formatChartDataForTxt(monthlyTrend, 'CO2 & Alternative Fuel Trends', 'month', 'co2');
+                downloadTxtFile(content, `${facility.name}_CO2_AltFuel_Trends.txt`);
+              }}
+              className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+              title="Export Chart Data"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={monthlyTrend}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -121,7 +134,19 @@ export const FacilityDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white border border-gray-200 p-grid-4">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Cement Plant Performance</h3>
+          <div className="flex items-center justify-between mb-grid-3">
+            <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Cement Plant Performance</h3>
+            <button
+              onClick={() => {
+                const content = formatChartDataForTxt(radarData, 'Cement Plant Performance', 'subject', 'A');
+                downloadTxtFile(content, `${facility.name}_Plant_Performance.txt`);
+              }}
+              className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+              title="Export Chart Data"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
               <PolarGrid />
@@ -134,7 +159,19 @@ export const FacilityDashboard: React.FC = () => {
       </div>
 
       <div className="bg-white border border-gray-200 p-grid-4">
-        <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Emissions vs Limits (mg/Nm³)</h3>
+        <div className="flex items-center justify-between mb-grid-3">
+          <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Emissions vs Limits (mg/Nm³)</h3>
+          <button
+            onClick={() => {
+              const content = formatChartDataForTxt(emissionsData, 'Emissions vs Limits (mg/Nm³)', 'type', 'value');
+              downloadTxtFile(content, `${facility.name}_Emissions_vs_Limits.txt`);
+            }}
+            className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+            title="Export Chart Data"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={emissionsData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -222,10 +259,22 @@ export const FacilityDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-grid-3">
         <div className="bg-white border border-gray-200 p-grid-4">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 flex items-center uppercase tracking-wide">
-            <Leaf className="w-4 h-4 text-latspace-dark mr-grid" />
-            Environmental Performance
-          </h3>
+          <div className="flex items-center justify-between mb-grid-3">
+            <h3 className="text-base font-semibold text-latspace-dark flex items-center uppercase tracking-wide">
+              <Leaf className="w-4 h-4 text-latspace-dark mr-grid" />
+              Environmental Performance
+            </h3>
+            <button
+              onClick={() => {
+                const content = formatMetricsForTxt(environmentalMetrics, 'Environmental Performance Metrics');
+                downloadTxtFile(content, `${facility.name}_Environmental_Metrics.txt`);
+              }}
+              className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+              title="Export Metrics Data"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-2">
             {environmentalMetrics.map((metric, index) => {
               const Icon = metric.icon;
@@ -245,10 +294,22 @@ export const FacilityDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white border border-gray-200 p-grid-4">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 flex items-center uppercase tracking-wide">
-            <Users className="w-4 h-4 text-latspace-dark mr-grid" />
-            Social Performance
-          </h3>
+          <div className="flex items-center justify-between mb-grid-3">
+            <h3 className="text-base font-semibold text-latspace-dark flex items-center uppercase tracking-wide">
+              <Users className="w-4 h-4 text-latspace-dark mr-grid" />
+              Social Performance
+            </h3>
+            <button
+              onClick={() => {
+                const content = formatMetricsForTxt(socialMetrics, 'Social Performance Metrics');
+                downloadTxtFile(content, `${facility.name}_Social_Metrics.txt`);
+              }}
+              className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+              title="Export Metrics Data"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-2">
             {socialMetrics.map((metric, index) => {
               const Icon = metric.icon;
@@ -268,10 +329,22 @@ export const FacilityDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white border border-gray-200 p-grid-4">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 flex items-center uppercase tracking-wide">
-            <Scale className="w-4 h-4 text-latspace-dark mr-grid" />
-            Governance & Compliance
-          </h3>
+          <div className="flex items-center justify-between mb-grid-3">
+            <h3 className="text-base font-semibold text-latspace-dark flex items-center uppercase tracking-wide">
+              <Scale className="w-4 h-4 text-latspace-dark mr-grid" />
+              Governance & Compliance
+            </h3>
+            <button
+              onClick={() => {
+                const content = formatMetricsForTxt(governanceMetrics, 'Governance & Compliance Metrics');
+                downloadTxtFile(content, `${facility.name}_Governance_Metrics.txt`);
+              }}
+              className="p-2 rounded text-latspace-medium hover:text-latspace-dark border border-gray-300 hover:border-latspace-dark"
+              title="Export Metrics Data"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-2">
             {governanceMetrics.map((metric, index) => {
               const isPercentage = metric.unit === '%';

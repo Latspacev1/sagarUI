@@ -1,4 +1,9 @@
 import { User, Facility, ESGData } from '../types';
+import { 
+  generateFacilityParameters, 
+  generateCementTypes, 
+  generatePowerSources 
+} from './syntheticDataGenerator';
 
 export const mockUsers: User[] = [
   {
@@ -65,7 +70,6 @@ export const mockFacilities: Facility[] = [
     location: 'Telangana',
     capacity: '3.0 MTPA',
     type: 'integrated',
-    esgScore: 78,
     dataCompleteness: 85,
     manager: 'John Smith',
     lastUpdated: '2024-06-20'
@@ -76,7 +80,6 @@ export const mockFacilities: Facility[] = [
     location: 'Andhra Pradesh',
     capacity: '1.25 MTPA',
     type: 'integrated',
-    esgScore: 82,
     dataCompleteness: 92,
     manager: 'Jane Doe',
     lastUpdated: '2024-06-21'
@@ -87,7 +90,6 @@ export const mockFacilities: Facility[] = [
     location: 'Andhra Pradesh',
     capacity: '1.5 MTPA',
     type: 'grinding',
-    esgScore: 89,
     dataCompleteness: 78,
     manager: 'Mike Johnson',
     lastUpdated: '2024-06-19'
@@ -98,7 +100,6 @@ export const mockFacilities: Facility[] = [
     location: 'Odisha',
     capacity: '1.5 MTPA',
     type: 'grinding',
-    esgScore: 91,
     dataCompleteness: 96,
     manager: 'Sarah Williams',
     lastUpdated: '2024-06-21'
@@ -110,7 +111,6 @@ export const mockFacilities: Facility[] = [
     capacity: '1.0 MTPA',
     type: 'integrated',
     company: 'Sagar Cements (M) Private Limited',
-    esgScore: 86,
     dataCompleteness: 88,
     manager: 'Rajesh Kumar',
     lastUpdated: '2024-06-20'
@@ -122,7 +122,6 @@ export const mockFacilities: Facility[] = [
     capacity: '2.25 MTPA',
     type: 'integrated',
     company: 'Andhra Cements Limited',
-    esgScore: 84,
     dataCompleteness: 90,
     manager: 'Priya Sharma',
     lastUpdated: '2024-06-21'
@@ -627,3 +626,89 @@ export const fac1MonthlyData = {
     { source: 'Solar', mwh: 1204, percentage: 0.9 }
   ]
 };
+
+// Facility configurations for data generation
+const facilityConfigs = [
+  { id: 'fac1', name: 'Mattampally', type: 'integrated' as const, capacity: '3.0 MTPA', performanceMultiplier: 1.0 },
+  { id: 'fac2', name: 'Gudipadu', type: 'integrated' as const, capacity: '1.25 MTPA', performanceMultiplier: 1.05 },
+  { id: 'fac3', name: 'Bayyavaram', type: 'grinding' as const, capacity: '1.5 MTPA', performanceMultiplier: 1.12 },
+  { id: 'fac4', name: 'Jajpur', type: 'grinding' as const, capacity: '1.5 MTPA', performanceMultiplier: 1.15 },
+  { id: 'fac5', name: 'Jeerabad', type: 'integrated' as const, capacity: '1.0 MTPA', performanceMultiplier: 0.95 },
+  { id: 'fac6', name: 'Dachepalli', type: 'integrated' as const, capacity: '2.25 MTPA', performanceMultiplier: 1.08 }
+];
+
+// Generate comprehensive parameter registries for all facilities
+export const facilityParameterRegistries: Record<string, Parameter[]> = {};
+export const facilityCementTypes: Record<string, any[]> = {};
+export const facilityPowerSources: Record<string, any[]> = {};
+export const facilityMonthlyData: Record<string, any> = {};
+
+facilityConfigs.forEach(config => {
+  // Generate parameters for each facility
+  facilityParameterRegistries[config.id] = generateFacilityParameters(config);
+  
+  // Get total cement production for calculations
+  const cementParam = facilityParameterRegistries[config.id].find(p => p.id.includes('total_cement_produced'));
+  const totalCementProduction = cementParam ? cementParam.ytd : 100000;
+  
+  // Generate cement types distribution
+  facilityCementTypes[config.id] = generateCementTypes(config, totalCementProduction);
+  
+  // Generate power sources (assuming 100 MWh as base for grinding, 150 MWh for integrated)
+  const basePower = config.type === 'integrated' ? 150000 : 50000;
+  facilityPowerSources[config.id] = generatePowerSources(config, basePower);
+  
+  // Generate monthly overview data
+  facilityMonthlyData[config.id] = {
+    production: [
+      { month: 'Apr', clinkerProduction: config.type === 'integrated' ? Math.round(163252 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(129975 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 46 },
+      { month: 'May', clinkerProduction: config.type === 'integrated' ? Math.round(190158 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(102090 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 46 },
+      { month: 'Jun', clinkerProduction: config.type === 'integrated' ? Math.round(174611 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(135932 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 44 },
+      { month: 'Jul', clinkerProduction: config.type === 'integrated' ? Math.round(108753 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(108080 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 46 },
+      { month: 'Aug', clinkerProduction: config.type === 'integrated' ? Math.round(70042 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(116550 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 43 },
+      { month: 'Sep', clinkerProduction: config.type === 'integrated' ? Math.round(143775 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(90995 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 51 },
+      { month: 'Oct', clinkerProduction: config.type === 'integrated' ? Math.round(162306 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(114870 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 47 },
+      { month: 'Nov', clinkerProduction: config.type === 'integrated' ? Math.round(175389 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(119515 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 47 },
+      { month: 'Dec', clinkerProduction: config.type === 'integrated' ? Math.round(138981 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(147355 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 44 },
+      { month: 'Jan', clinkerProduction: config.type === 'integrated' ? Math.round(185331 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(141930 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 46 },
+      { month: 'Feb', clinkerProduction: config.type === 'integrated' ? Math.round(166483 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)) : 0, 
+        cementProduction: Math.round(164510 * (config.performanceMultiplier || 1) * (config.capacity === '3.0 MTPA' ? 1 : 0.5)), blendedShare: 38 }
+    ],
+    energy: [
+      { month: 'Apr', specificHeat: config.type === 'integrated' ? 725 : 0, specificPower: 69.80, tsr: config.type === 'integrated' ? 8.19 : 0, renewableRatio: 19.66 },
+      { month: 'May', specificHeat: config.type === 'integrated' ? 711 : 0, specificPower: 63.96, tsr: config.type === 'integrated' ? 9.24 : 0, renewableRatio: 30.17 },
+      { month: 'Jun', specificHeat: config.type === 'integrated' ? 703 : 0, specificPower: 69.62, tsr: config.type === 'integrated' ? 10.09 : 0, renewableRatio: 31.72 },
+      { month: 'Jul', specificHeat: config.type === 'integrated' ? 703 : 0, specificPower: 75.88, tsr: config.type === 'integrated' ? 10.78 : 0, renewableRatio: 29.05 },
+      { month: 'Aug', specificHeat: config.type === 'integrated' ? 704 : 0, specificPower: 89.80, tsr: config.type === 'integrated' ? 10.97 : 0, renewableRatio: 18.87 },
+      { month: 'Sep', specificHeat: config.type === 'integrated' ? 705 : 0, specificPower: 68.50, tsr: config.type === 'integrated' ? 7.94 : 0, renewableRatio: 27.10 },
+      { month: 'Oct', specificHeat: config.type === 'integrated' ? 708 : 0, specificPower: 68.55, tsr: config.type === 'integrated' ? 11.13 : 0, renewableRatio: 26.24 },
+      { month: 'Nov', specificHeat: config.type === 'integrated' ? 710 : 0, specificPower: 67.11, tsr: config.type === 'integrated' ? 10.43 : 0, renewableRatio: 27.19 },
+      { month: 'Dec', specificHeat: config.type === 'integrated' ? 713 : 0, specificPower: 75.31, tsr: config.type === 'integrated' ? 11.27 : 0, renewableRatio: 22.71 },
+      { month: 'Jan', specificHeat: config.type === 'integrated' ? 708 : 0, specificPower: 68.93, tsr: config.type === 'integrated' ? 9.09 : 0, renewableRatio: 24.06 },
+      { month: 'Feb', specificHeat: config.type === 'integrated' ? 723 : 0, specificPower: 74, tsr: config.type === 'integrated' ? 6.48 : 0, renewableRatio: 21.21 }
+    ],
+    emissions: [
+      { month: 'Apr', scope1: config.type === 'integrated' ? 746 : 65, scope2: 5, scope3: 4, total: config.type === 'integrated' ? 754 : 74 },
+      { month: 'May', scope1: config.type === 'integrated' ? 760 : 68, scope2: 6, scope3: 3, total: config.type === 'integrated' ? 769 : 77 },
+      { month: 'Jun', scope1: config.type === 'integrated' ? 741 : 62, scope2: 3, scope3: 3, total: config.type === 'integrated' ? 747 : 68 },
+      { month: 'Jul', scope1: config.type === 'integrated' ? 713 : 58, scope2: 10, scope3: 4, total: config.type === 'integrated' ? 727 : 72 },
+      { month: 'Aug', scope1: config.type === 'integrated' ? 664 : 55, scope2: 23, scope3: 6, total: config.type === 'integrated' ? 693 : 84 },
+      { month: 'Sep', scope1: config.type === 'integrated' ? 756 : 64, scope2: 6, scope3: 2, total: config.type === 'integrated' ? 764 : 72 },
+      { month: 'Oct', scope1: config.type === 'integrated' ? 751 : 63, scope2: 4, scope3: 3, total: config.type === 'integrated' ? 757 : 70 },
+      { month: 'Nov', scope1: config.type === 'integrated' ? 758 : 66, scope2: 4, scope3: 3, total: config.type === 'integrated' ? 764 : 73 },
+      { month: 'Dec', scope1: config.type === 'integrated' ? 732 : 61, scope2: 5, scope3: 5, total: config.type === 'integrated' ? 741 : 71 },
+      { month: 'Jan', scope1: config.type === 'integrated' ? 749 : 65, scope2: 5, scope3: 4, total: config.type === 'integrated' ? 758 : 74 },
+      { month: 'Feb', scope1: config.type === 'integrated' ? 745 : 63, scope2: 8, scope3: 4, total: config.type === 'integrated' ? 757 : 75 }
+    ]
+  };
+});

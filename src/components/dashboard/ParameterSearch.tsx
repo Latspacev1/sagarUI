@@ -5,11 +5,13 @@ import { Parameter, parameterRegistry } from '../../utils/mockData';
 interface ParameterSearchProps {
   onParameterSelect: (parameter: Parameter | null) => void;
   selectedParameter: Parameter | null;
+  parameters?: Parameter[]; // Optional facility-specific parameters
 }
 
 export const ParameterSearch: React.FC<ParameterSearchProps> = ({
   onParameterSelect,
-  selectedParameter
+  selectedParameter,
+  parameters
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +20,8 @@ export const ParameterSearch: React.FC<ParameterSearchProps> = ({
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const filtered = parameterRegistry.filter(param => {
+    const sourceParameters = parameters || parameterRegistry;
+    const filtered = sourceParameters.filter(param => {
       const matchesSearch = param.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           param.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           param.subcategory.toLowerCase().includes(searchTerm.toLowerCase());
@@ -29,7 +32,7 @@ export const ParameterSearch: React.FC<ParameterSearchProps> = ({
     });
     
     setFilteredParameters(filtered);
-  }, [searchTerm, categoryFilter]);
+  }, [searchTerm, categoryFilter, parameters]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,14 +57,6 @@ export const ParameterSearch: React.FC<ParameterSearchProps> = ({
     setIsOpen(false);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'production': return 'text-blue-600';
-      case 'energy': return 'text-green-600';
-      case 'emissions': return 'text-red-600';
-      default: return 'text-latspace-medium';
-    }
-  };
 
   const getCategoryBadgeColor = (category: string) => {
     switch (category) {
