@@ -1,8 +1,11 @@
 
 # Dependencies
 node_modules/
+**/node_modules/
+**/node_modules/**
 /.pnp
 .pnp.js
+node_modules/.cache/
 
 # Production builds
 /build
