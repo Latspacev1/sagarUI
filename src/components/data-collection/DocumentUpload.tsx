@@ -439,7 +439,7 @@ export const DocumentUpload: React.FC = () => {
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce"></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                   <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                  <span>Extracting ESG data...</span>
+                                  <span>Extracting sustainability data...</span>
                                 </div>
                               </div>
                             )}
@@ -633,7 +633,7 @@ export const DocumentUpload: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">1.</span>
-                <span className="text-latspace-medium">AI processes documents and extracts relevant ESG data</span>
+                <span className="text-latspace-medium">AI processes documents and extracts relevant sustainability data</span>
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">2.</span>
@@ -645,7 +645,7 @@ export const DocumentUpload: React.FC = () => {
               </div>
               <div className="flex items-start">
                 <span className="text-latspace-medium mr-3 font-bold">4.</span>
-                <span className="text-latspace-medium">Approved data integrates into facility ESG metrics</span>
+                <span className="text-latspace-medium">Approved data integrates into facility sustainability metrics</span>
               </div>
             </div>
           </div>

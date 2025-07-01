@@ -53,11 +53,6 @@ export const FacilityDetail: React.FC = () => {
     );
   }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-latspace-dark';
-    if (score >= 70) return 'text-latspace-medium';
-    return 'text-latspace-light';
-  };
 
   // Get key metrics from parameters
   const getParameterValue = (id: string) => {
@@ -137,13 +132,10 @@ export const FacilityDetail: React.FC = () => {
             </div>
             
             <div className="text-right">
-              <div className={`text-3xl font-mono ${getScoreColor(facility.esgScore)} data-value`}>
-                {facility.esgScore}
+              <div className="text-3xl font-mono text-latspace-dark data-value">
+                {facility.dataCompleteness}%
               </div>
-              <div className="text-xs font-semibold text-latspace-medium uppercase tracking-wider mt-grid">ESG Score</div>
-              <div className={`mt-grid-2 px-grid-2 py-grid border text-xs font-mono ${getScoreColor(facility.esgScore)} border-current`}>
-                {facility.esgScore >= 90 ? 'EXCELLENT' : facility.esgScore >= 70 ? 'GOOD' : 'NEEDS IMPROVEMENT'}
-              </div>
+              <div className="text-xs font-semibold text-latspace-medium uppercase tracking-wider mt-grid">Data Completeness</div>
             </div>
           </div>
         </div>

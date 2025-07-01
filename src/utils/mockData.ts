@@ -70,7 +70,6 @@ export const mockFacilities: Facility[] = [
     location: 'Telangana',
     capacity: '3.0 MTPA',
     type: 'integrated',
-    esgScore: 78,
     dataCompleteness: 85,
     manager: 'John Smith',
     lastUpdated: '2024-06-20'
@@ -81,7 +80,6 @@ export const mockFacilities: Facility[] = [
     location: 'Andhra Pradesh',
     capacity: '1.25 MTPA',
     type: 'integrated',
-    esgScore: 82,
     dataCompleteness: 92,
     manager: 'Jane Doe',
     lastUpdated: '2024-06-21'
@@ -92,7 +90,6 @@ export const mockFacilities: Facility[] = [
     location: 'Andhra Pradesh',
     capacity: '1.5 MTPA',
     type: 'grinding',
-    esgScore: 89,
     dataCompleteness: 78,
     manager: 'Mike Johnson',
     lastUpdated: '2024-06-19'
@@ -103,7 +100,6 @@ export const mockFacilities: Facility[] = [
     location: 'Odisha',
     capacity: '1.5 MTPA',
     type: 'grinding',
-    esgScore: 91,
     dataCompleteness: 96,
     manager: 'Sarah Williams',
     lastUpdated: '2024-06-21'
@@ -115,7 +111,6 @@ export const mockFacilities: Facility[] = [
     capacity: '1.0 MTPA',
     type: 'integrated',
     company: 'Sagar Cements (M) Private Limited',
-    esgScore: 86,
     dataCompleteness: 88,
     manager: 'Rajesh Kumar',
     lastUpdated: '2024-06-20'
@@ -127,7 +122,6 @@ export const mockFacilities: Facility[] = [
     capacity: '2.25 MTPA',
     type: 'integrated',
     company: 'Andhra Cements Limited',
-    esgScore: 84,
     dataCompleteness: 90,
     manager: 'Priya Sharma',
     lastUpdated: '2024-06-21'

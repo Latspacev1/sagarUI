@@ -90,8 +90,8 @@ export const FacilityDashboard: React.FC = () => {
           {facility.company && <p className="text-sm text-latspace-medium font-mono italic">{facility.company}</p>}
         </div>
         <div className="text-right">
-          <div className="text-3xl font-mono text-latspace-dark data-value">{facility.esgScore}</div>
-          <div className="text-xs text-latspace-medium uppercase tracking-wider">ESG Score</div>
+          <div className="text-3xl font-mono text-latspace-dark data-value">{facility.dataCompleteness}%</div>
+          <div className="text-xs text-latspace-medium uppercase tracking-wider">Data Completeness</div>
         </div>
       </div>
 
