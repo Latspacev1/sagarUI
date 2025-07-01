@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Building, FileText, Upload, Database, BarChart3, Menu, X } from 'lucide-react';
+import { LogOut, Building, FileText, Upload, Database, BarChart3, Menu, X, Activity, Coins } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -18,7 +18,9 @@ export const Navbar: React.FC = () => {
 
   const adminNavItems = [
     { path: '/admin', label: 'Dashboard', icon: BarChart3 },
-    { path: '/admin/facilities', label: 'Facilities', icon: Building }
+    { path: '/admin/facilities', label: 'Facilities', icon: Building },
+    { path: '/admin/ccts', label: 'CCTS', icon: Activity },
+    { path: '/admin/carbon-credits', label: 'Carbon Credits', icon: Coins }
   ];
 
   const facilityNavItems = [

@@ -6,6 +6,8 @@ import { AdminHome } from './pages/AdminHome';
 import { FacilityHome } from './pages/FacilityHome';
 import { Facilities } from './pages/Facilities';
 import { FacilityDetail } from './pages/FacilityDetail';
+import { CCTSHome } from './pages/CCTSHome';
+import { CarbonCreditsHome } from './pages/CarbonCreditsHome';
 import { ManualEntry } from './components/data-collection/ManualEntry';
 import { DocumentUpload } from './components/data-collection/DocumentUpload';
 import { BulkUpload } from './components/data-collection/BulkUpload';
@@ -49,6 +51,18 @@ const AppRoutes: React.FC = () => {
       <Route path="/admin/facilities" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <Facilities />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin/ccts" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CCTSHome />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin/carbon-credits" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CarbonCreditsHome />
         </ProtectedRoute>
       } />
       

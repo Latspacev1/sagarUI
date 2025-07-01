@@ -54,8 +54,8 @@ export const AdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-grid-3">
         <div>
-          <h1 className="text-2xl font-semibold text-latspace-dark">Sagar Cements Limited - Operational Analytics Dashboard</h1>
-          <p className="text-sm text-latspace-medium mt-1">Production, Energy & Emissions Management System</p>
+          <h1 className="text-2xl font-semibold text-latspace-dark">Sagar Cements Limited Dashboard</h1>
+          <p className="text-sm text-latspace-medium mt-1">Sustainability Management System</p>
         </div>
         <div className="text-sm text-latspace-medium font-mono">
           Mattampally Plant • {new Date().toLocaleDateString()}
