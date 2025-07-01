@@ -130,27 +130,27 @@ export const mockFacilities: Facility[] = [
 ];
 
 export const mockESGData: Record<string, ESGData> = {
-  fac1: { // Mattampally - Largest integrated plant
+  fac1: { // Mattampally - Largest integrated plant - ACTUAL DATA
     environmental: {
-      co2PerTon: 680,
-      thermalEnergy: 720,
-      electricalEnergy: 78,
-      altFuelUsage: 22,
-      clinkerFactor: 0.82,
-      waterPerTon: 120,
-      dustEmissions: 28,
-      noxEmissions: 180,
-      soxEmissions: 45,
-      wasteHeatRecovery: 12,
-      greenCover: 145
+      co2PerTon: 752, // kg CO2/t cementitious (from emission intensity total)
+      thermalEnergy: 711, // kcal/kg of clinker (specific heat consumption)
+      electricalEnergy: 71, // kWh/t of cementitious (specific power consumption)
+      altFuelUsage: 9, // % (TSR total)
+      clinkerFactor: 0.81, // clinker factor from actual data
+      waterPerTon: 120, // estimated - not in provided data
+      dustEmissions: 28, // estimated - not in provided data
+      noxEmissions: 180, // estimated - not in provided data
+      soxEmissions: 45, // estimated - not in provided data
+      wasteHeatRecovery: 33.7, // MWh from WHRS (33,722 MWh total delivered)
+      greenCover: 145 // estimated - not in provided data
     },
     social: {
-      employees: 450,
-      ltifr: 0.8,
-      trainingHours: 24,
-      localEmployment: 78,
-      csrSpend: 8.5,
-      contractorSafety: 1.2
+      employees: 450, // estimated - not in provided data
+      ltifr: 0.8, // estimated - not in provided data
+      trainingHours: 24, // estimated - not in provided data
+      localEmployment: 78, // estimated - not in provided data
+      csrSpend: 8.5, // estimated - not in provided data
+      contractorSafety: 1.2 // estimated - not in provided data
     },
     governance: {
       iso14001: true,
@@ -310,4 +310,320 @@ export const mockESGData: Record<string, ESGData> = {
       ethicsTraining: 90
     }
   }
+};
+
+// Parameter interface for comprehensive data structure
+export interface Parameter {
+  id: string;
+  name: string;
+  category: 'production' | 'energy' | 'emissions';
+  subcategory: string;
+  unit: string;
+  description: string;
+  monthlyData: { month: string; value: number }[];
+  ytd: number;
+}
+
+// Complete parameter registry for Mattampally Plant
+export const parameterRegistry: Parameter[] = [
+  // PRODUCTION PARAMETERS
+  {
+    id: 'clinker_production',
+    name: 'Clinker Production',
+    category: 'production',
+    subcategory: 'Material Flow',
+    unit: 'Tons',
+    description: 'Total kiln clinker made',
+    monthlyData: [
+      { month: 'Apr', value: 163252 }, { month: 'May', value: 190158 }, { month: 'Jun', value: 174611 },
+      { month: 'Jul', value: 108753 }, { month: 'Aug', value: 70042 }, { month: 'Sep', value: 143775 },
+      { month: 'Oct', value: 162306 }, { month: 'Nov', value: 175389 }, { month: 'Dec', value: 138981 },
+      { month: 'Jan', value: 185331 }, { month: 'Feb', value: 166483 }
+    ],
+    ytd: 1679081
+  },
+  {
+    id: 'clinker_consumed',
+    name: 'Clinker Consumed',
+    category: 'production',
+    subcategory: 'Material Flow',
+    unit: 'Tons',
+    description: 'Clinker fed to cement mill',
+    monthlyData: [
+      { month: 'Apr', value: 103502 }, { month: 'May', value: 81255 }, { month: 'Jun', value: 110023 },
+      { month: 'Jul', value: 86796 }, { month: 'Aug', value: 96231 }, { month: 'Sep', value: 72637 },
+      { month: 'Oct', value: 91703 }, { month: 'Nov', value: 95995 }, { month: 'Dec', value: 119840 },
+      { month: 'Jan', value: 114382 }, { month: 'Feb', value: 136580 }
+    ],
+    ytd: 1108944
+  },
+  {
+    id: 'total_cement_produced',
+    name: 'Total Cement Produced',
+    category: 'production',
+    subcategory: 'Material Flow',
+    unit: 'Tons',
+    description: 'Sum of clinker consumed and alternative cementitious material',
+    monthlyData: [
+      { month: 'Apr', value: 129975 }, { month: 'May', value: 102090 }, { month: 'Jun', value: 135932 },
+      { month: 'Jul', value: 108080 }, { month: 'Aug', value: 116550 }, { month: 'Sep', value: 90995 },
+      { month: 'Oct', value: 114870 }, { month: 'Nov', value: 119515 }, { month: 'Dec', value: 147355 },
+      { month: 'Jan', value: 141930 }, { month: 'Feb', value: 164510 }
+    ],
+    ytd: 1371802
+  },
+  {
+    id: 'total_opc_produced',
+    name: 'Total OPC Produced',
+    category: 'production',
+    subcategory: 'Cement Types',
+    unit: 'Tons',
+    description: 'Total OPC produced',
+    monthlyData: [
+      { month: 'Apr', value: 70695 }, { month: 'May', value: 55505 }, { month: 'Jun', value: 75935 },
+      { month: 'Jul', value: 58160 }, { month: 'Aug', value: 66535 }, { month: 'Sep', value: 45010 },
+      { month: 'Oct', value: 60540 }, { month: 'Nov', value: 63715 }, { month: 'Dec', value: 82920 },
+      { month: 'Jan', value: 77055 }, { month: 'Feb', value: 102475 }
+    ],
+    ytd: 758545
+  },
+  {
+    id: 'total_ppc_produced',
+    name: 'Total PPC Produced',
+    category: 'production',
+    subcategory: 'Cement Types',
+    unit: 'Tons',
+    description: 'Total PPC produced',
+    monthlyData: [
+      { month: 'Apr', value: 59280 }, { month: 'May', value: 46585 }, { month: 'Jun', value: 54938 },
+      { month: 'Jul', value: 45717 }, { month: 'Aug', value: 47209 }, { month: 'Sep', value: 42552 },
+      { month: 'Oct', value: 50617 }, { month: 'Nov', value: 51380 }, { month: 'Dec', value: 57644 },
+      { month: 'Jan', value: 61263 }, { month: 'Feb', value: 57434 }
+    ],
+    ytd: 574619
+  },
+  {
+    id: 'clinker_factor',
+    name: 'Clinker Factor',
+    category: 'production',
+    subcategory: 'Ratios & Factors',
+    unit: '%',
+    description: 'Clinker consumed divided by total cementitious produced',
+    monthlyData: [
+      { month: 'Apr', value: 0.80 }, { month: 'May', value: 0.80 }, { month: 'Jun', value: 0.81 },
+      { month: 'Jul', value: 0.80 }, { month: 'Aug', value: 0.83 }, { month: 'Sep', value: 0.80 },
+      { month: 'Oct', value: 0.80 }, { month: 'Nov', value: 0.80 }, { month: 'Dec', value: 0.81 },
+      { month: 'Jan', value: 0.81 }, { month: 'Feb', value: 0.83 }
+    ],
+    ytd: 0.81
+  },
+  {
+    id: 'blended_cements_share',
+    name: 'Blended Cements Share',
+    category: 'production',
+    subcategory: 'Ratios & Factors',
+    unit: '%',
+    description: 'Total blended cements divided by total cement produced times 100',
+    monthlyData: [
+      { month: 'Apr', value: 46 }, { month: 'May', value: 46 }, { month: 'Jun', value: 44 },
+      { month: 'Jul', value: 46 }, { month: 'Aug', value: 43 }, { month: 'Sep', value: 51 },
+      { month: 'Oct', value: 47 }, { month: 'Nov', value: 47 }, { month: 'Dec', value: 44 },
+      { month: 'Jan', value: 46 }, { month: 'Feb', value: 38 }
+    ],
+    ytd: 45
+  },
+
+  // ENERGY PARAMETERS
+  {
+    id: 'specific_heat_consumption',
+    name: 'Specific Heat Consumption',
+    category: 'energy',
+    subcategory: 'Heat Consumption',
+    unit: 'Kcal/kg of clinker',
+    description: 'Specific Heat Consumption',
+    monthlyData: [
+      { month: 'Apr', value: 725 }, { month: 'May', value: 711 }, { month: 'Jun', value: 703 },
+      { month: 'Jul', value: 703 }, { month: 'Aug', value: 704 }, { month: 'Sep', value: 705 },
+      { month: 'Oct', value: 708 }, { month: 'Nov', value: 710 }, { month: 'Dec', value: 713 },
+      { month: 'Jan', value: 708 }, { month: 'Feb', value: 723 }
+    ],
+    ytd: 711
+  },
+  {
+    id: 'specific_power_consumption_cementitious',
+    name: 'Specific Power Consumption for Cementitious',
+    category: 'energy',
+    subcategory: 'Power Consumption',
+    unit: 'KWH/t of cementitious',
+    description: 'Specific power consumption for cementitious',
+    monthlyData: [
+      { month: 'Apr', value: 69.80 }, { month: 'May', value: 63.96 }, { month: 'Jun', value: 69.62 },
+      { month: 'Jul', value: 75.88 }, { month: 'Aug', value: 89.80 }, { month: 'Sep', value: 68.50 },
+      { month: 'Oct', value: 68.55 }, { month: 'Nov', value: 67.11 }, { month: 'Dec', value: 75.31 },
+      { month: 'Jan', value: 68.93 }, { month: 'Feb', value: 74 }
+    ],
+    ytd: 71
+  },
+  {
+    id: 'tsr_total',
+    name: 'TSR (Thermal Substitution Ratio)',
+    category: 'energy',
+    subcategory: 'Alternative Fuels',
+    unit: '%',
+    description: 'TSR',
+    monthlyData: [
+      { month: 'Apr', value: 8.19 }, { month: 'May', value: 9.24 }, { month: 'Jun', value: 10.09 },
+      { month: 'Jul', value: 10.78 }, { month: 'Aug', value: 10.97 }, { month: 'Sep', value: 7.94 },
+      { month: 'Oct', value: 11.13 }, { month: 'Nov', value: 10.43 }, { month: 'Dec', value: 11.27 },
+      { month: 'Jan', value: 9.09 }, { month: 'Feb', value: 6.48 }
+    ],
+    ytd: 9
+  },
+  {
+    id: 'ratio_electrical_green_energy',
+    name: 'Ratio of Electrical Green Energy',
+    category: 'energy',
+    subcategory: 'Renewable Energy',
+    unit: '%',
+    description: 'Ratio of electrical green energy',
+    monthlyData: [
+      { month: 'Apr', value: 19.66 }, { month: 'May', value: 30.17 }, { month: 'Jun', value: 31.72 },
+      { month: 'Jul', value: 29.05 }, { month: 'Aug', value: 18.87 }, { month: 'Sep', value: 27.10 },
+      { month: 'Oct', value: 26.24 }, { month: 'Nov', value: 27.19 }, { month: 'Dec', value: 22.71 },
+      { month: 'Jan', value: 24.06 }, { month: 'Feb', value: 21.21 }
+    ],
+    ytd: 25.39
+  },
+  {
+    id: 'plant_load_factor',
+    name: 'Plant Load Factor',
+    category: 'energy',
+    subcategory: 'Power Generation',
+    unit: '%',
+    description: 'Plant Load Factor',
+    monthlyData: [
+      { month: 'Apr', value: 82 }, { month: 'May', value: 65 }, { month: 'Jun', value: 75 },
+      { month: 'Jul', value: 44 }, { month: 'Aug', value: 31 }, { month: 'Sep', value: 60 },
+      { month: 'Oct', value: 71 }, { month: 'Nov', value: 76 }, { month: 'Dec', value: 72 },
+      { month: 'Jan', value: 81 }, { month: 'Feb', value: 85 }
+    ],
+    ytd: 68
+  },
+
+  // EMISSIONS PARAMETERS
+  {
+    id: 'scope1_total',
+    name: 'Scope 1 Total Emissions',
+    category: 'emissions',
+    subcategory: 'Scope-wise Emissions',
+    unit: 'TCO2',
+    description: 'Total Scope 1 emissions',
+    monthlyData: [
+      { month: 'Apr', value: 141462 }, { month: 'May', value: 160349 }, { month: 'Jun', value: 148511 },
+      { month: 'Jul', value: 92690 }, { month: 'Aug', value: 59984 }, { month: 'Sep', value: 122600 },
+      { month: 'Oct', value: 139258 }, { month: 'Nov', value: 150743 }, { month: 'Dec', value: 121793 },
+      { month: 'Jan', value: 159463 }, { month: 'Feb', value: 144829 }
+    ],
+    ytd: 1441674
+  },
+  {
+    id: 'emission_intensity_scope1',
+    name: 'Emission Intensity - Scope 1',
+    category: 'emissions',
+    subcategory: 'Emission Intensity',
+    unit: 'kg CO2/t cementitious',
+    description: 'Emission intensity - Scope 1',
+    monthlyData: [
+      { month: 'Apr', value: 746 }, { month: 'May', value: 760 }, { month: 'Jun', value: 741 },
+      { month: 'Jul', value: 713 }, { month: 'Aug', value: 664 }, { month: 'Sep', value: 756 },
+      { month: 'Oct', value: 751 }, { month: 'Nov', value: 758 }, { month: 'Dec', value: 732 },
+      { month: 'Jan', value: 749 }, { month: 'Feb', value: 745 }
+    ],
+    ytd: 742
+  },
+  {
+    id: 'emission_intensity_scope2',
+    name: 'Emission Intensity - Scope 2',
+    category: 'emissions',
+    subcategory: 'Emission Intensity',
+    unit: 'kg CO2/t cementitious',
+    description: 'Emission intensity - Scope 2',
+    monthlyData: [
+      { month: 'Apr', value: 5 }, { month: 'May', value: 6 }, { month: 'Jun', value: 3 },
+      { month: 'Jul', value: 10 }, { month: 'Aug', value: 23 }, { month: 'Sep', value: 6 },
+      { month: 'Oct', value: 4 }, { month: 'Nov', value: 4 }, { month: 'Dec', value: 5 },
+      { month: 'Jan', value: 5 }, { month: 'Feb', value: 8 }
+    ],
+    ytd: 6
+  },
+  {
+    id: 'emission_intensity_total',
+    name: 'Total Emission Intensity',
+    category: 'emissions',
+    subcategory: 'Emission Intensity',
+    unit: 'kg CO2/t cementitious',
+    description: 'Total emission intensity',
+    monthlyData: [
+      { month: 'Apr', value: 754 }, { month: 'May', value: 769 }, { month: 'Jun', value: 747 },
+      { month: 'Jul', value: 727 }, { month: 'Aug', value: 693 }, { month: 'Sep', value: 764 },
+      { month: 'Oct', value: 757 }, { month: 'Nov', value: 764 }, { month: 'Dec', value: 741 },
+      { month: 'Jan', value: 758 }, { month: 'Feb', value: 757 }
+    ],
+    ytd: 752
+  }
+];
+
+// Monthly actual data for Facility 1 (Mattampally) - 2023-24
+export const fac1MonthlyData = {
+  production: [
+    { month: 'Apr', clinkerProduction: 163252, cementProduction: 129975, blendedShare: 46 },
+    { month: 'May', clinkerProduction: 190158, cementProduction: 102090, blendedShare: 46 },
+    { month: 'Jun', clinkerProduction: 174611, cementProduction: 135932, blendedShare: 44 },
+    { month: 'Jul', clinkerProduction: 108753, cementProduction: 108080, blendedShare: 46 },
+    { month: 'Aug', clinkerProduction: 70042, cementProduction: 116550, blendedShare: 43 },
+    { month: 'Sep', clinkerProduction: 143775, cementProduction: 90995, blendedShare: 51 },
+    { month: 'Oct', clinkerProduction: 162306, cementProduction: 114870, blendedShare: 47 },
+    { month: 'Nov', clinkerProduction: 175389, cementProduction: 119515, blendedShare: 47 },
+    { month: 'Dec', clinkerProduction: 138981, cementProduction: 147355, blendedShare: 44 },
+    { month: 'Jan', clinkerProduction: 185331, cementProduction: 141930, blendedShare: 46 },
+    { month: 'Feb', clinkerProduction: 166483, cementProduction: 164510, blendedShare: 38 }
+  ],
+  energy: [
+    { month: 'Apr', specificHeat: 725, specificPower: 69.80, tsr: 8.19, renewableRatio: 19.66 },
+    { month: 'May', specificHeat: 711, specificPower: 63.96, tsr: 9.24, renewableRatio: 30.17 },
+    { month: 'Jun', specificHeat: 703, specificPower: 69.62, tsr: 10.09, renewableRatio: 31.72 },
+    { month: 'Jul', specificHeat: 703, specificPower: 75.88, tsr: 10.78, renewableRatio: 29.05 },
+    { month: 'Aug', specificHeat: 704, specificPower: 89.80, tsr: 10.97, renewableRatio: 18.87 },
+    { month: 'Sep', specificHeat: 705, specificPower: 68.50, tsr: 7.94, renewableRatio: 27.10 },
+    { month: 'Oct', specificHeat: 708, specificPower: 68.55, tsr: 11.13, renewableRatio: 26.24 },
+    { month: 'Nov', specificHeat: 710, specificPower: 67.11, tsr: 10.43, renewableRatio: 27.19 },
+    { month: 'Dec', specificHeat: 713, specificPower: 75.31, tsr: 11.27, renewableRatio: 22.71 },
+    { month: 'Jan', specificHeat: 708, specificPower: 68.93, tsr: 9.09, renewableRatio: 24.06 },
+    { month: 'Feb', specificHeat: 723, specificPower: 74, tsr: 6.48, renewableRatio: 21.21 }
+  ],
+  emissions: [
+    { month: 'Apr', scope1: 746, scope2: 5, scope3: 4, total: 754 },
+    { month: 'May', scope1: 760, scope2: 6, scope3: 3, total: 769 },
+    { month: 'Jun', scope1: 741, scope2: 3, scope3: 3, total: 747 },
+    { month: 'Jul', scope1: 713, scope2: 10, scope3: 4, total: 727 },
+    { month: 'Aug', scope1: 664, scope2: 23, scope3: 6, total: 693 },
+    { month: 'Sep', scope1: 756, scope2: 6, scope3: 2, total: 764 },
+    { month: 'Oct', scope1: 751, scope2: 4, scope3: 3, total: 757 },
+    { month: 'Nov', scope1: 758, scope2: 4, scope3: 3, total: 764 },
+    { month: 'Dec', scope1: 732, scope2: 5, scope3: 5, total: 741 },
+    { month: 'Jan', scope1: 749, scope2: 5, scope3: 4, total: 758 },
+    { month: 'Feb', scope1: 745, scope2: 8, scope3: 4, total: 757 }
+  ],
+  cementTypes: [
+    { type: 'OPC', percentage: 55.3, production: 758545 },
+    { type: 'PPC', percentage: 41.9, production: 574619 },
+    { type: 'Super PPC', percentage: 2.8, production: 38638 },
+    { type: 'Others', percentage: 0, production: 0 }
+  ],
+  powerSources: [
+    { source: 'Grid', mwh: 16519, percentage: 12.0 },
+    { source: 'Onsite CPP', mwh: 86098, percentage: 62.6 },
+    { source: 'WHRS', mwh: 33722, percentage: 24.5 },
+    { source: 'Solar', mwh: 1204, percentage: 0.9 }
+  ]
 };

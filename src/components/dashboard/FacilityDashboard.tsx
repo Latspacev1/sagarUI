@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { mockFacilities, mockESGData } from '../../utils/mockData';
+import { mockFacilities, mockESGData, fac1MonthlyData } from '../../utils/mockData';
 import { ProgressBar } from './ProgressBar';
 import { Leaf, Zap, Droplets, Factory, Users, Shield, Heart, Scale, CheckCircle, FileText, Upload, Flame, Gauge } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 export const FacilityDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -45,14 +45,19 @@ export const FacilityDashboard: React.FC = () => {
     { label: 'Ethics Training', value: esgData.governance.ethicsTraining, unit: '%' }
   ];
 
-  const monthlyTrend = [
-    { month: 'Jan', co2: 720, altFuel: 15 },
-    { month: 'Feb', co2: 710, altFuel: 16 },
-    { month: 'Mar', co2: 700, altFuel: 18 },
-    { month: 'Apr', co2: 695, altFuel: 19 },
-    { month: 'May', co2: 685, altFuel: 20 },
-    { month: 'Jun', co2: esgData.environmental.co2PerTon, altFuel: esgData.environmental.altFuelUsage }
-  ];
+  const monthlyTrend = user?.facilityId === 'fac1' ? 
+    fac1MonthlyData.emissions.map(item => ({
+      month: item.month,
+      co2: item.total,
+      altFuel: fac1MonthlyData.energy.find(e => e.month === item.month)?.tsr || 0
+    })) : [
+      { month: 'Jan', co2: 720, altFuel: 15 },
+      { month: 'Feb', co2: 710, altFuel: 16 },
+      { month: 'Mar', co2: 700, altFuel: 18 },
+      { month: 'Apr', co2: 695, altFuel: 19 },
+      { month: 'May', co2: 685, altFuel: 20 },
+      { month: 'Jun', co2: esgData.environmental.co2PerTon, altFuel: esgData.environmental.altFuelUsage }
+    ];
 
   const radarData = [
     { subject: 'CO2 Efficiency', A: Math.max(0, 100 - (esgData.environmental.co2PerTon - 600) / 2), fullMark: 100 },
@@ -141,6 +146,79 @@ export const FacilityDashboard: React.FC = () => {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {user?.facilityId === 'fac1' && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
+            <div className="bg-white border border-gray-200 p-grid-4">
+              <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Monthly Production Trends</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={fac1MonthlyData.production}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value, name) => [value.toLocaleString(), name]} />
+                  <Line type="monotone" dataKey="clinkerProduction" stroke="#074D47" strokeWidth={2} name="Clinker (tons)" />
+                  <Line type="monotone" dataKey="cementProduction" stroke="#22867C" strokeWidth={2} name="Cement (tons)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white border border-gray-200 p-grid-4">
+              <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Cement Type Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={fac1MonthlyData.cementTypes}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ type, percentage }) => `${type}: ${percentage}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="percentage"
+                  >
+                    {fac1MonthlyData.cementTypes.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#074D47', '#22867C', '#89E4DA', '#E6F7F5'][index % 4]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`${value}%`, 'Share']} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-grid-3">
+            <div className="bg-white border border-gray-200 p-grid-4">
+              <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Energy Metrics Trends</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={fac1MonthlyData.energy}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Line yAxisId="left" type="monotone" dataKey="specificHeat" stroke="#074D47" strokeWidth={2} name="Heat (kcal/kg)" />
+                  <Line yAxisId="right" type="monotone" dataKey="renewableRatio" stroke="#22867C" strokeWidth={2} name="Renewable %" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white border border-gray-200 p-grid-4">
+              <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Power Sources</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={fac1MonthlyData.powerSources}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="source" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [value.toLocaleString(), 'MWh']} />
+                  <Bar dataKey="mwh" fill="#074D47" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-grid-3">
         <div className="bg-white border border-gray-200 p-grid-4">
