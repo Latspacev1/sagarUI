@@ -1,21 +1,39 @@
 import React, { useState, useCallback } from 'react';
 import { Layout } from '../layout/Layout';
-import { Upload, File, CheckCircle, AlertCircle, X, FileText, FileImage, Database } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, X, FileText, FileImage, Database, Factory, Zap, Leaf, Edit3, Check, XCircle, Calendar, ChevronDown } from 'lucide-react';
+
+type DocumentType = 'production' | 'environmental' | 'electricity';
+type ReviewStatus = 'pending' | 'reviewing' | 'approved' | 'rejected' | 'editing';
+
+interface ExtractedDataItem {
+  key: string;
+  label: string;
+  value: string;
+  unit?: string;
+  editable: boolean;
+}
 
 interface UploadedFile {
   id: string;
   name: string;
   size: number;
   type: string;
+  documentType: DocumentType;
+  reportingMonth: number;
+  reportingYear: number;
   status: 'uploading' | 'processing' | 'completed' | 'error';
+  reviewStatus: ReviewStatus;
   progress: number;
-  extractedData?: string[];
+  extractedData?: ExtractedDataItem[];
+  editableData?: Record<string, string>;
   error?: string;
 }
 
 export const DocumentUpload: React.FC = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragOver, setIsDragOver] = useState<DocumentType | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const allowedTypes = [
     'application/pdf',
@@ -26,31 +44,31 @@ export const DocumentUpload: React.FC = () => {
     'text/plain'
   ];
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent, docType: DocumentType) => {
     e.preventDefault();
-    setIsDragOver(true);
+    setIsDragOver(docType);
   }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
+    setIsDragOver(null);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent, docType: DocumentType) => {
     e.preventDefault();
-    setIsDragOver(false);
+    setIsDragOver(null);
     const droppedFiles = Array.from(e.dataTransfer.files);
-    processFiles(droppedFiles);
-  }, []);
+    processFiles(droppedFiles, docType);
+  }, [selectedMonth, selectedYear]);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, docType: DocumentType) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      processFiles(selectedFiles);
+      processFiles(selectedFiles, docType);
     }
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
-  const processFiles = (fileList: File[]) => {
+  const processFiles = (fileList: File[], docType: DocumentType) => {
     const validFiles = fileList.filter(file => {
       if (!allowedTypes.includes(file.type)) {
         alert(`File type ${file.type} is not supported`);
@@ -68,7 +86,11 @@ export const DocumentUpload: React.FC = () => {
       name: file.name,
       size: file.size,
       type: file.type,
+      documentType: docType,
+      reportingMonth: selectedMonth,
+      reportingYear: selectedYear,
       status: 'uploading',
+      reviewStatus: 'pending',
       progress: 0
     }));
 
@@ -76,11 +98,75 @@ export const DocumentUpload: React.FC = () => {
 
     // Simulate file upload and processing
     newFiles.forEach(file => {
-      simulateFileProcessing(file.id);
+      simulateFileProcessing(file.id, docType);
     });
   };
 
-  const simulateFileProcessing = async (fileId: string) => {
+  const getDocumentTypeData = (docType: DocumentType): ExtractedDataItem[] => {
+    switch (docType) {
+      case 'production':
+        return [
+          { key: 'totalOutput', label: 'Total Production Output', value: '2,450', unit: 'tons', editable: true },
+          { key: 'efficiency', label: 'Equipment Efficiency', value: '94.2', unit: '%', editable: true },
+          { key: 'operatingHours', label: 'Operating Hours', value: '168', unit: 'hours', editable: true },
+          { key: 'downtime', label: 'Planned Downtime', value: '4.5', unit: 'hours', editable: true },
+          { key: 'qualityRate', label: 'Quality Pass Rate', value: '98.7', unit: '%', editable: true }
+        ];
+      case 'environmental':
+        return [
+          { key: 'noxEmissions', label: 'NOx Emissions', value: '125.4', unit: 'mg/m³', editable: true },
+          { key: 'soxEmissions', label: 'SOx Emissions', value: '89.2', unit: 'mg/m³', editable: true },
+          { key: 'particulateMatter', label: 'Particulate Matter', value: '15.7', unit: 'mg/m³', editable: true },
+          { key: 'complianceStatus', label: 'Compliance Status', value: 'COMPLIANT', unit: '', editable: false },
+          { key: 'testDate', label: 'Test Date', value: '2024-01-15', unit: '', editable: true }
+        ];
+      case 'electricity':
+        return [
+          { key: 'totalConsumption', label: 'Total Consumption', value: '12,450', unit: 'kWh', editable: true },
+          { key: 'peakDemand', label: 'Peak Demand', value: '850', unit: 'kW', editable: true },
+          { key: 'totalCost', label: 'Total Cost', value: '2,890.50', unit: 'USD', editable: true },
+          { key: 'billingPeriod', label: 'Billing Period', value: '2024-01-01 to 2024-01-31', unit: '', editable: true },
+          { key: 'powerFactor', label: 'Power Factor', value: '0.92', unit: '', editable: true }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const updateExtractedData = (fileId: string, key: string, value: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? {
+        ...f,
+        editableData: { ...f.editableData, [key]: value }
+      } : f
+    ));
+  };
+
+  const approveFile = (fileId: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, reviewStatus: 'approved' as ReviewStatus } : f
+    ));
+  };
+
+  const rejectFile = (fileId: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, reviewStatus: 'rejected' as ReviewStatus } : f
+    ));
+  };
+
+  const editFile = (fileId: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, reviewStatus: 'editing' as ReviewStatus } : f
+    ));
+  };
+
+  const saveEditedFile = (fileId: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, reviewStatus: 'approved' as ReviewStatus } : f
+    ));
+  };
+
+  const simulateFileProcessing = async (fileId: string, docType: DocumentType) => {
     // Simulate upload progress
     for (let progress = 0; progress <= 100; progress += 20) {
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -102,22 +188,21 @@ export const DocumentUpload: React.FC = () => {
       ));
     }
 
-    // Simulate extraction results
-    const mockExtractedData = [
-      'Energy consumption: 1,250 MWh',
-      'CO2 emissions: 245 tons',
-      'Water usage: 3,400 gallons',
-      'Safety incidents: 2',
-      'Employee count: 450'
-    ];
+    // Get document type specific mock data
+    const mockExtractedData = getDocumentTypeData(docType);
 
     // Complete processing
     setFiles(prev => prev.map(f => 
       f.id === fileId ? { 
         ...f, 
         status: 'completed', 
+        reviewStatus: 'reviewing',
         progress: 100,
-        extractedData: mockExtractedData
+        extractedData: mockExtractedData,
+        editableData: mockExtractedData.reduce((acc, item) => ({
+          ...acc,
+          [item.key]: item.value
+        }), {})
       } : f
     ));
   };
@@ -152,142 +237,416 @@ export const DocumentUpload: React.FC = () => {
     }
   };
 
+  const months = [
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' },
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' }
+  ];
+
+  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+
+  const getDocumentTypeConfig = (docType: DocumentType) => {
+    switch (docType) {
+      case 'production':
+        return {
+          title: 'Daily Production Report Upload',
+          icon: <Factory className="w-8 h-8 text-latspace-dark" />,
+          description: 'Upload daily production reports, output metrics, and operational data',
+          acceptedTypes: 'PDF, Excel, Word documents'
+        };
+      case 'environmental':
+        return {
+          title: 'Third Party NOx, SOx, Particulate Matter Report',
+          icon: <Leaf className="w-8 h-8 text-latspace-dark" />,
+          description: 'Upload environmental compliance reports and emissions data',
+          acceptedTypes: 'PDF, certified test reports'
+        };
+      case 'electricity':
+        return {
+          title: 'Electricity Bill Upload',
+          icon: <Zap className="w-8 h-8 text-latspace-dark" />,
+          description: 'Upload electricity bills and energy consumption reports',
+          acceptedTypes: 'PDF, images, utility bills'
+        };
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-grid-6">
-        <div className="flex items-center justify-between border-b border-gray-200 pb-grid-3">
-          <h1 className="text-2xl font-semibold text-latspace-dark">Document Upload</h1>
-          <div className="text-xs text-latspace-medium font-mono uppercase tracking-wider">
-            PDF, WORD, IMAGES, TEXT (MAX 10MB)
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-6">
+          <h1 className="text-3xl font-bold text-latspace-dark tracking-tight">Document Upload</h1>
+          <div className="text-xs text-latspace-medium font-mono bg-gray-50 px-3 py-1.5 rounded-md">
+            PDF, Word, Images, Excel (Max 10MB)
           </div>
         </div>
 
-        <div
-          className={`border-2 p-grid-8 text-center transition-colors bg-white ${
-            isDragOver
-              ? 'border-latspace-dark'
-              : 'border-gray-300 hover:border-latspace-medium'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <Upload className="w-grid-6 h-grid-6 text-latspace-medium mx-auto mb-grid-3" />
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-2 uppercase tracking-wide">
-            Upload ESG Documents
-          </h3>
-          <p className="text-latspace-medium mb-grid-3 text-sm">
-            Drag and drop your files here, or click to browse
-          </p>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-            onChange={handleFileSelect}
-            className="hidden"
-            id="file-upload"
-          />
-          <label
-            htmlFor="file-upload"
-            className="inline-flex items-center px-grid-3 py-grid-2 bg-latspace-dark text-white hover:bg-latspace-medium transition-colors cursor-pointer uppercase text-xs font-semibold tracking-wider"
-          >
-            <Upload className="w-4 h-4 mr-grid" />
-            Choose Files
-          </label>
+        {/* Month/Year Selection */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3">
+              <Calendar className="w-5 h-5 text-latspace-dark" />
+              <h3 className="text-lg font-semibold text-latspace-dark">Reporting Period</h3>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <select 
+                  value={selectedMonth} 
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2.5 pr-10 text-sm text-latspace-dark cursor-pointer hover:border-latspace-medium focus:outline-none focus:ring-2 focus:ring-latspace-dark focus:border-transparent transition-all"
+                >
+                  {months.map(month => (
+                    <option key={month.value} value={month.value}>{month.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-latspace-medium pointer-events-none" />
+              </div>
+              <div className="relative">
+                <select 
+                  value={selectedYear} 
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2.5 pr-10 text-sm text-latspace-dark cursor-pointer hover:border-latspace-medium focus:outline-none focus:ring-2 focus:ring-latspace-dark focus:border-transparent transition-all"
+                >
+                  {years.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-latspace-medium pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Three Upload Boxes */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {(['production', 'environmental', 'electricity'] as DocumentType[]).map((docType) => {
+            const config = getDocumentTypeConfig(docType);
+            return (
+              <div
+                key={docType}
+                className={`border-2 p-8 text-center transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-md ${
+                  isDragOver === docType
+                    ? 'border-latspace-dark bg-latspace-dark bg-opacity-5 shadow-lg transform scale-[1.02]'
+                    : 'border-gray-300 hover:border-latspace-medium'
+                }`}
+                onDragOver={(e) => handleDragOver(e, docType)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, docType)}
+              >
+                <div className="mb-6">{config.icon}</div>
+                <h3 className="text-sm font-bold text-latspace-dark mb-3 leading-tight">
+                  {config.title}
+                </h3>
+                <p className="text-latspace-medium mb-4 text-sm leading-relaxed px-2">
+                  {config.description}
+                </p>
+                <p className="text-xs text-latspace-medium mb-6 font-mono bg-gray-50 px-3 py-1.5 rounded-md inline-block">
+                  {config.acceptedTypes}
+                </p>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xlsx,.xls"
+                  onChange={(e) => handleFileSelect(e, docType)}
+                  className="hidden"
+                  id={`file-upload-${docType}`}
+                />
+                <label
+                  htmlFor={`file-upload-${docType}`}
+                  className="inline-flex items-center px-6 py-3 bg-latspace-dark text-white hover:bg-latspace-medium transition-all duration-200 cursor-pointer text-xs font-bold rounded-md shadow-sm hover:shadow-md transform hover:scale-105"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Choose Files
+                </label>
+              </div>
+            );
+          })}
         </div>
 
         {files.length > 0 && (
-          <div className="bg-white border border-gray-200">
-            <div className="px-grid-4 py-grid-3 border-b border-gray-200">
-              <h3 className="text-base font-semibold text-latspace-dark uppercase tracking-wide">Uploaded Files</h3>
-            </div>
-            <div className="p-grid-4 space-y-grid-3">
-              {files.map((file) => (
-                <div key={file.id} className="border border-gray-200 p-grid-3 grid-pattern">
-                  <div className="flex items-center justify-between mb-grid-2">
-                    <div className="flex items-center">
-                      {getFileIcon(file.type)}
-                      <div className="ml-grid-2">
-                        <p className="text-sm font-semibold text-latspace-dark">{file.name}</p>
-                        <p className="text-xs text-latspace-medium font-mono data-value">{formatFileSize(file.size)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-grid-2">
-                      {getStatusIcon(file.status)}
-                      <button
-                        onClick={() => removeFile(file.id)}
-                        className="text-latspace-medium hover:text-latspace-dark transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+          <div className="space-y-6">
+            {(['production', 'environmental', 'electricity'] as DocumentType[]).map((docType) => {
+              const docFiles = files.filter(f => f.documentType === docType);
+              if (docFiles.length === 0) return null;
+
+              const config = getDocumentTypeConfig(docType);
+              
+              return (
+                <div key={docType} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <div className="px-6 py-4 border-b border-gray-200 flex items-center bg-gray-50 rounded-t-lg">
+                    <div className="mr-4">{config.icon}</div>
+                    <h3 className="text-lg font-bold text-latspace-dark">
+                      {config.title}
+                    </h3>
+                    <span className="ml-auto text-sm text-latspace-medium font-mono bg-white px-3 py-1.5 rounded-md border">
+                      {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
+                    </span>
                   </div>
+                  <div className="p-6 space-y-6">
+                    {docFiles.map((file) => (
+                      <div key={file.id} className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            {getFileIcon(file.type)}
+                            <div className="ml-4">
+                              <p className="text-sm font-semibold text-latspace-dark">{file.name}</p>
+                              <p className="text-xs text-latspace-medium font-mono">{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            {getStatusIcon(file.status)}
+                            <button
+                              onClick={() => removeFile(file.id)}
+                              className="text-latspace-medium hover:text-latspace-dark transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
 
-                  {file.status !== 'completed' && (
-                    <div className="mb-grid-2">
-                      <div className="flex justify-between text-xs mb-grid">
-                        <span className="text-latspace-medium uppercase tracking-wider">
-                          {file.status === 'uploading' ? 'UPLOADING' : 'PROCESSING'}...
-                        </span>
-                        <span className="font-mono text-latspace-dark data-value">{file.progress}%</span>
+                        {/* Enhanced Processing Animation */}
+                        {file.status !== 'completed' && (
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs mb-2">
+                              <span className="text-latspace-medium flex items-center">
+                                {file.status === 'uploading' && (
+                                  <><Upload className="w-3 h-3 mr-1 animate-pulse" /> Uploading</>
+                                )}
+                                {file.status === 'processing' && (
+                                  <><Database className="w-3 h-3 mr-1 animate-spin" /> AI Processing</>
+                                )}
+                              </span>
+                              <span className="font-mono text-latspace-dark">{file.progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-latspace-dark to-latspace-medium h-3 transition-all duration-500 ease-out rounded-full"
+                                style={{ width: `${file.progress}%` }}
+                              />
+                            </div>
+                            {file.status === 'processing' && (
+                              <div className="mt-2 text-xs text-latspace-medium animate-pulse">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce"></div>
+                                  <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                  <div className="w-2 h-2 bg-latspace-medium rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                  <span>Extracting ESG data...</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Enhanced Data Review Interface */}
+                        {file.status === 'completed' && file.extractedData && (
+                          <div className="border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-50 p-6 mt-3 rounded-lg shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="text-sm font-semibold text-latspace-dark flex items-center">
+                                <Database className="w-4 h-4 mr-2" />
+                                Extracted Data - Review Required
+                              </h4>
+                              <div className="flex items-center space-x-2">
+                                {file.reviewStatus === 'reviewing' && (
+                                  <span className="text-xs text-orange-500 font-mono px-2 py-1 bg-orange-50 border border-orange-200 rounded">
+                                    Pending Review
+                                  </span>
+                                )}
+                                {file.reviewStatus === 'approved' && (
+                                  <span className="text-xs text-green-600 font-mono px-2 py-1 bg-green-50 border border-green-200 rounded">
+                                    Approved
+                                  </span>
+                                )}
+                                {file.reviewStatus === 'rejected' && (
+                                  <span className="text-xs text-red-600 font-mono px-2 py-1 bg-red-50 border border-red-200 rounded">
+                                    Rejected
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3 mb-4">
+                              {file.extractedData.map((dataItem, index) => (
+                                <div key={index} className="flex items-center justify-between border-b border-gray-100 pb-2">
+                                  <div className="flex-1">
+                                    <label className="text-xs font-semibold text-latspace-dark block mb-1">
+                                      {dataItem.label}
+                                    </label>
+                                    {file.reviewStatus === 'editing' && dataItem.editable ? (
+                                      <input
+                                        type="text"
+                                        value={file.editableData?.[dataItem.key] || dataItem.value}
+                                        onChange={(e) => updateExtractedData(file.id, dataItem.key, e.target.value)}
+                                        className="text-sm border border-gray-300 px-2 py-1 rounded w-full font-mono"
+                                      />
+                                    ) : (
+                                      <span className="text-sm font-mono text-latspace-dark data-value">
+                                        {file.editableData?.[dataItem.key] || dataItem.value}
+                                        {dataItem.unit && ` ${dataItem.unit}`}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {dataItem.editable && file.reviewStatus !== 'editing' && (
+                                    <Edit3 className="w-3 h-3 text-latspace-medium ml-2" />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-end space-x-2">
+                              {file.reviewStatus === 'reviewing' && (
+                                <>
+                                  <button
+                                    onClick={() => rejectFile(file.id)}
+                                    className="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 transition-colors text-xs font-semibold uppercase tracking-wider rounded"
+                                  >
+                                    <XCircle className="w-4 h-4 mr-1 inline" />
+                                    Reject
+                                  </button>
+                                  <button
+                                    onClick={() => editFile(file.id)}
+                                    className="px-3 py-2 border border-orange-300 text-orange-600 hover:bg-orange-50 transition-colors text-xs font-semibold uppercase tracking-wider rounded"
+                                  >
+                                    <Edit3 className="w-4 h-4 mr-1 inline" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => approveFile(file.id)}
+                                    className="px-3 py-2 bg-latspace-dark text-white hover:bg-latspace-medium transition-colors text-xs font-semibold uppercase tracking-wider rounded"
+                                  >
+                                    <Check className="w-4 h-4 mr-1 inline" />
+                                    Approve
+                                  </button>
+                                </>
+                              )}
+                              {file.reviewStatus === 'editing' && (
+                                <>
+                                  <button
+                                    onClick={() => setFiles(prev => prev.map(f => 
+                                      f.id === file.id ? { ...f, reviewStatus: 'reviewing' as ReviewStatus } : f
+                                    ))}
+                                    className="px-3 py-2 border border-gray-300 text-latspace-medium hover:bg-gray-50 transition-colors text-xs font-semibold rounded"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => saveEditedFile(file.id)}
+                                    className="px-3 py-2 bg-latspace-dark text-white hover:bg-latspace-medium transition-colors text-xs font-semibold rounded"
+                                  >
+                                    <Check className="w-4 h-4 mr-1 inline" />
+                                    Save & Approve
+                                  </button>
+                                </>
+                              )}
+                              {file.reviewStatus === 'approved' && (
+                                <span className="text-xs text-green-600 font-mono flex items-center">
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Data Approved
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {file.status === 'error' && (
+                          <div className="border border-red-300 bg-red-50 p-3 mt-2 rounded">
+                            <p className="text-xs text-red-600 font-mono">
+                              {file.error || 'Error: File processing failed'}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <div className="w-full bg-gray-200 h-2">
-                        <div
-                          className="bg-latspace-dark h-2 transition-all duration-300"
-                          style={{ width: `${file.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {file.status === 'completed' && file.extractedData && (
-                    <div className="border border-latspace-dark p-grid-2 mt-grid-2">
-                      <h4 className="text-xs font-semibold text-latspace-dark mb-grid-2 flex items-center uppercase tracking-wider">
-                        <Database className="w-4 h-4 mr-grid" />
-                        Extracted Data
-                      </h4>
-                      <ul className="text-xs space-y-grid">
-                        {file.extractedData.map((data, index) => (
-                          <li key={index} className="flex items-center text-latspace-dark font-mono data-value">
-                            <CheckCircle className="w-3 h-3 mr-grid text-latspace-dark" />
-                            {data}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {file.status === 'error' && (
-                    <div className="border border-latspace-light p-grid-2 mt-grid-2">
-                      <p className="text-xs text-latspace-light font-mono uppercase">
-                        {file.error || 'ERROR: FILE PROCESSING FAILED'}
-                      </p>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 p-grid-4 grid-pattern">
-          <h3 className="text-base font-semibold text-latspace-dark mb-grid-3 uppercase tracking-wide">Document Processing</h3>
-          <div className="space-y-grid-2 text-xs">
-            <div className="flex items-start">
-              <span className="text-latspace-medium mr-grid">•</span>
-              <span className="text-latspace-medium uppercase tracking-wider">AI EXTRACTS ESG DATA FROM UPLOADED DOCUMENTS</span>
+        <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-latspace-dark mb-6">AI Document Processing & Review Workflow</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
+                <Factory className="w-4 h-4 mr-1" />
+                Production Reports
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">Output volumes & efficiency metrics</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">Operating hours & downtime tracking</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-start">
-              <span className="text-latspace-medium mr-grid">•</span>
-              <span className="text-latspace-medium uppercase tracking-wider">SUPPORTED: ENERGY BILLS, SUSTAINABILITY REPORTS, COMPLIANCE CERTIFICATES</span>
+            
+            <div className="space-y-3">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
+                <Leaf className="w-4 h-4 mr-1" />
+                Environmental Data
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">NOx, SOx, particulate matter readings</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">Compliance status verification</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-start">
-              <span className="text-latspace-medium mr-grid">•</span>
-              <span className="text-latspace-medium uppercase tracking-wider">EXTRACTED DATA CAN BE REVIEWED AND ADJUSTED</span>
+            
+            <div className="space-y-3">
+              <h4 className="font-semibold text-latspace-dark flex items-center">
+                <Zap className="w-4 h-4 mr-1" />
+                Energy Consumption
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">Total kWh consumption & peak demand</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-latspace-medium mr-3">•</span>
+                  <span className="text-latspace-medium">Billing costs & power factor analysis</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-start">
-              <span className="text-latspace-medium mr-grid">•</span>
-              <span className="text-latspace-medium uppercase tracking-wider">PROCESSING TIME VARIES BY DOCUMENT COMPLEXITY</span>
+          </div>
+          
+          <div className="border-t border-gray-200 mt-8 pt-6">
+            <h4 className="font-bold text-latspace-dark mb-4 text-base">Review & Approval Process</h4>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start">
+                <span className="text-latspace-medium mr-3 font-bold">1.</span>
+                <span className="text-latspace-medium">AI processes documents and extracts relevant ESG data</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-latspace-medium mr-3 font-bold">2.</span>
+                <span className="text-latspace-medium">Review extracted data for accuracy and completeness</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-latspace-medium mr-3 font-bold">3.</span>
+                <span className="text-latspace-medium">Edit values if needed, then approve or reject</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-latspace-medium mr-3 font-bold">4.</span>
+                <span className="text-latspace-medium">Approved data integrates into facility ESG metrics</span>
+              </div>
             </div>
           </div>
         </div>
